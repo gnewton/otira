@@ -1,5 +1,9 @@
 package otira
 
+import (
+	"errors"
+)
+
 type TableMeta struct {
 	name       string
 	fields     []FieldMeta
@@ -8,12 +12,39 @@ type TableMeta struct {
 	oneToMany  []*OneToMany
 	manyToMany []*ManyToMany
 	indexes    []*Index
+	done       bool
 }
 
 func NewTableMeta(name string) (*TableMeta, error) {
 	t := new(TableMeta)
 	t.name = name
+	t.done = false
 	return t, nil
+}
+
+func (t *TableMeta) GetName() string {
+	return t.name
+}
+
+func (t *TableMeta) SetDone() {
+	t.done = true
+}
+
+func (t *TableMeta) Done() bool {
+	return t.done
+}
+
+func (t *TableMeta) NewRecord() (*Record, error) {
+	if !t.done {
+		return nil, errors.New("Cannot make new record: TableMeta must be done before using")
+	}
+
+	rec := new(Record)
+	rec.tableMeta = t
+	rec.values = make([]*Field, len(t.fields))
+
+	return rec, nil
+
 }
 
 func (t *TableMeta) AddIndex(name string, field0, field1 *FieldMeta, fields ...*FieldMeta) {
@@ -44,11 +75,22 @@ func (t *TableMeta) Add(f FieldMeta) error {
 	return nil
 }
 
-func (t *TableMeta) CreatePreparedStatementInsert(dialect string) string {
-	return t.CreatePreparedStatementInsertSomeFields(dialect, t.fields...)
+func (t *TableMeta) CreatePreparedStatementInsertAllFields(dialect Dialect) (string, error) {
+	a, b := t.CreatePreparedStatementInsertSomeFields(dialect, t.fields...)
+	return a, b
 }
 
-func (t *TableMeta) CreatePreparedStatementInsertSomeFields(dialect string, fields ...FieldMeta) string {
+func (t *TableMeta) CreateTableString(dialect Dialect) (string, error) {
+	if !t.done {
+		return "", errors.New("Table must be done")
+	}
+	return dialect.CreateTableString(t), nil
+}
+
+func (t *TableMeta) CreatePreparedStatementInsertSomeFields(dialect Dialect, fields ...FieldMeta) (string, error) {
+	if !t.done {
+		return "", errors.New("Table must be done")
+	}
 
 	st := "INSERT INTO " + t.name + " ("
 	values := "("
@@ -65,18 +107,5 @@ func (t *TableMeta) CreatePreparedStatementInsertSomeFields(dialect string, fiel
 	values += ")"
 
 	st = st + " VALUES " + values
-	return st
-
-	// //+"(column names) VALUES  (?)"
-
-	// switch dialect {
-	// case "oracle":
-
-	// case "mysql":
-	// case "sqlite3":
-
-	// case "postgresql":
-	// }
-
-	// return "TODO FIXXX"
+	return st, nil
 }

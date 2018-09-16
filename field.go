@@ -1,6 +1,7 @@
 package otira
 
 type Field struct {
-	field     *struct{}
-	fieldMeta *FieldMeta
+	field       struct{}
+	fieldMeta   *FieldMeta
+	hasSetValue bool
 }

@@ -16,6 +16,8 @@ type FieldMeta interface {
 	PrimaryKey() bool
 	SetPrimaryKey(bool)
 	String() string
+	SetFixed(bool)
+	Fixed() bool
 	//Table(*Table)
 
 }

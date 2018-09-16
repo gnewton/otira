@@ -12,6 +12,7 @@ type FieldMetaImpl struct {
 	indexed    bool
 	nullable   bool
 	primaryKey bool
+	fixed      bool
 	//Table(*Table)
 }
 
@@ -47,17 +48,24 @@ func (b *FieldMetaImpl) SetUnique(v bool) {
 func (b *FieldMetaImpl) Indexed() bool {
 	return b.indexed
 }
-
 func (b *FieldMetaImpl) SetIndexed(v bool) {
 	b.indexed = v
 }
+
 func (b *FieldMetaImpl) Nullable() bool {
 	return b.nullable
 }
-
 func (b *FieldMetaImpl) SetNullable(v bool) {
 	b.nullable = v
 }
+
+func (b *FieldMetaImpl) Fixed() bool {
+	return b.fixed
+}
+func (b *FieldMetaImpl) SetFixed(v bool) {
+	b.fixed = v
+}
+
 func (b *FieldMetaImpl) PrimaryKey() bool {
 	return b.primaryKey
 }
@@ -70,6 +78,31 @@ func (b *FieldMetaImpl) String() string {
 	return fmt.Sprintf("Name: [%s]  PrimaryKey: %t  Unique: %t  Indexed: %t  Nullable: %t", b.name, b.primaryKey, b.unique, b.indexed, b.nullable)
 }
 
-func (b *FieldMetaImpl) CreatePreparedStatement(dialect string, fields ...*FieldMeta) string {
-	return "TODO FIXXX"
+//////////////////////////////////////////////////////
+type FieldMetaString struct {
+	FieldMetaImpl
+}
+
+type FieldMetaInt struct {
+	FieldMetaImpl
+}
+
+type FieldMetaFloat struct {
+	FieldMetaImpl
+}
+
+type FieldMetaByte struct {
+	FieldMetaImpl
+}
+
+type FieldMetaTime struct {
+	FieldMetaImpl
+}
+
+type FieldMetaTimeStamp struct {
+	FieldMetaImpl
+}
+
+type FieldMetaBool struct {
+	FieldMetaImpl
 }
