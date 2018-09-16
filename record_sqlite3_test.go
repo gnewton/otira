@@ -36,7 +36,7 @@ func TestTableCreate(t *testing.T) {
 
 }
 
-// This function -- TestValidateSqlite3 -- is a slightly modified https://github.com/mattn/go-sqlite3/blob/master/_example/simple/simple.go
+// This function -- TestValidateSqlite3 -- is a modified https://github.com/mattn/go-sqlite3/blob/master/_example/simple/simple.go
 // and is therefor licensed under https://github.com/mattn/go-sqlite3/blob/master/LICENSE
 //   --- Make sure sqlite3 is working properly ---
 

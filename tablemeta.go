@@ -22,6 +22,10 @@ func NewTableMeta(name string) (*TableMeta, error) {
 	return t, nil
 }
 
+func (t *TableMeta) Fields() []FieldMeta {
+	return t.fields
+}
+
 func (t *TableMeta) GetName() string {
 	return t.name
 }

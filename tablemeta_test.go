@@ -16,8 +16,9 @@ func TestCreateTable(t *testing.T) {
 
 const tablename = "journals"
 const fieldname0 = "firstname"
-const fieldname1 = "lastname"
+const fieldname1 = "address"
 const fieldname2 = "age"
+const pk = "id"
 
 var fieldnames []string = []string{"city", "stateprovince"}
 

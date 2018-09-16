@@ -16,3 +16,11 @@ func (d *DialectPostgresql) CreateTableString(t *TableMeta) string {
 func (d *DialectPostgresql) PreparedValueFormat(counter int) string {
 	return "$" + strconv.Itoa(counter+1)
 }
+
+func (d *DialectPostgresql) FieldType(FieldMeta) string {
+	return "TODO"
+}
+
+func (d *DialectPostgresql) Constraints(fm FieldMeta) string {
+	return "TODO"
+}
