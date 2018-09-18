@@ -36,6 +36,25 @@ func TestTableCreate(t *testing.T) {
 
 }
 
+func TestRecordFromTableMeta(t *testing.T) {
+	table, err := defaultTestTable()
+	if err != nil {
+		t.Error(err)
+	}
+	record, err := table.NewRecord()
+	v := 44
+	err = record.values[0].SetValue("mm")
+	if err != nil {
+		t.Error(err)
+	}
+	err = record.values[1].SetValue(v)
+	if err != nil {
+		t.Error(err)
+	}
+	log.Println(record)
+
+}
+
 // This function -- TestValidateSqlite3 -- is a modified https://github.com/mattn/go-sqlite3/blob/master/_example/simple/simple.go
 // and is therefor licensed under https://github.com/mattn/go-sqlite3/blob/master/LICENSE
 //   --- Make sure sqlite3 is working properly ---

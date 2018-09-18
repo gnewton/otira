@@ -19,5 +19,5 @@ type FieldMeta interface {
 	SetFixed(bool)
 	Fixed() bool
 	//Table(*Table)
-
+	IsSameType(interface{}) bool
 }

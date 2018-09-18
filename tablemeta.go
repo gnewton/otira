@@ -2,6 +2,7 @@ package otira
 
 import (
 	"errors"
+	"log"
 )
 
 type TableMeta struct {
@@ -46,6 +47,12 @@ func (t *TableMeta) NewRecord() (*Record, error) {
 	rec := new(Record)
 	rec.tableMeta = t
 	rec.values = make([]*Field, len(t.fields))
+	log.Println("fields", t.fields)
+	for i, _ := range rec.values {
+		rec.values[i] = new(Field)
+		log.Println(i, t.fields[i])
+		rec.values[i].fieldMeta = t.fields[i]
+	}
 
 	return rec, nil
 

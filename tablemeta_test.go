@@ -18,6 +18,7 @@ const tablename = "journals"
 const fieldname0 = "firstname"
 const fieldname1 = "address"
 const fieldname2 = "age"
+const fieldname3 = "height"
 const pk = "id"
 
 var fieldnames []string = []string{"city", "stateprovince"}
@@ -39,7 +40,7 @@ func TestAddComplexIndexToTable(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	f := new(FieldMetaImpl)
+	f := new(FieldMetaString)
 	f.SetName("people")
 	t.Log(f.String())
 	err = table.Add(f)
@@ -56,7 +57,7 @@ func TestCreatePreparedStatementInsert(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	f := new(FieldMetaImpl)
+	f := new(FieldMetaString)
 	f.SetName(fieldname0)
 	t.Log(f.String())
 	err = table.Add(f)

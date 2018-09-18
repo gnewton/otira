@@ -2,6 +2,7 @@ package otira
 
 import (
 	"fmt"
+	"time"
 )
 
 type FieldMetaImpl struct {
@@ -78,31 +79,106 @@ func (b *FieldMetaImpl) String() string {
 	return fmt.Sprintf("Name: [%s]  PrimaryKey: %t  Unique: %t  Indexed: %t  Nullable: %t", b.name, b.primaryKey, b.unique, b.indexed, b.nullable)
 }
 
+// func (b *FieldMetaImpl) IsSameType(interface{}) bool {
+// 	return false
+// }
+
 //////////////////////////////////////////////////////
 type FieldMetaString struct {
 	FieldMetaImpl
 }
 
-type FieldMetaInt struct {
-	FieldMetaImpl
+func (fm *FieldMetaString) IsSameType(v interface{}) bool {
+	_, ok := v.(string)
+	return ok
 }
 
 type FieldMetaFloat struct {
 	FieldMetaImpl
 }
 
+func (fm *FieldMetaFloat) IsSameType(v interface{}) bool {
+	_, ok := v.(float32)
+	if !ok {
+		_, ok = v.(float64)
+	}
+	return ok
+}
+
+type FieldMetaInt struct {
+	FieldMetaImpl
+}
+
+func (fm *FieldMetaInt) IsSameType(v interface{}) bool {
+	_, ok := v.(int)
+	if !ok {
+		_, ok = v.(int8)
+		if !ok {
+			_, ok = v.(int16)
+
+			if !ok {
+				_, ok = v.(int32)
+
+				if !ok {
+					_, ok = v.(int64)
+
+					if !ok {
+						_, ok = v.(uint)
+
+						if !ok {
+							_, ok = v.(uint8)
+
+							if !ok {
+								_, ok = v.(uint16)
+
+								if !ok {
+									_, ok = v.(uint32)
+
+									if !ok {
+										_, ok = v.(uint64)
+
+										if !ok {
+											_, ok = v.(uintptr)
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	return ok
+}
+
 type FieldMetaByte struct {
 	FieldMetaImpl
+}
+
+func (fm *FieldMetaByte) IsSameType(v interface{}) bool {
+	_, ok := v.([]byte)
+	return ok
 }
 
 type FieldMetaTime struct {
 	FieldMetaImpl
 }
 
-type FieldMetaTimeStamp struct {
-	FieldMetaImpl
+func (fm *FieldMetaTime) IsSameType(v interface{}) bool {
+	_, ok := v.(time.Time)
+	return ok
 }
+
+//type FieldMetaTimeStamp struct {
+//	FieldMetaImpl
+//}
 
 type FieldMetaBool struct {
 	FieldMetaImpl
+}
+
+func (fm *FieldMetaBool) IsSameType(v interface{}) bool {
+	_, ok := v.(bool)
+	return ok
 }

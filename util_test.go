@@ -28,6 +28,10 @@ func defaultTestTable() (*TableMeta, error) {
 	f3.SetLength(64)
 	table.Add(f3)
 
+	f4 := new(FieldMetaFloat)
+	f4.SetName(fieldname3)
+	table.Add(f4)
+
 	table.SetDone()
 	return table, nil
 }
