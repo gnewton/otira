@@ -2,7 +2,6 @@ package otira
 
 import (
 	"errors"
-	"log"
 )
 
 type Field struct {
@@ -11,10 +10,14 @@ type Field struct {
 	hasSetValue bool
 }
 
+func (f *Field) SetValueFast(v interface{}) {
+	f.field = v
+	f.hasSetValue = true
+}
+
 func (f *Field) SetValue(v interface{}) error {
 	f.field = v
 	f.hasSetValue = true
-	log.Println(f.fieldMeta.IsSameType(v))
 	if !f.fieldMeta.IsSameType(v) {
 		return errors.New("Incorrect type")
 	}

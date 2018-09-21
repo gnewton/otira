@@ -41,18 +41,77 @@ func TestRecordFromTableMeta(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	record, err := table.NewRecord()
-	v := 44
-	err = record.values[0].SetValue("mm")
-	if err != nil {
-		t.Error(err)
-	}
-	err = record.values[1].SetValue(v)
-	if err != nil {
-		t.Error(err)
-	}
-	log.Println(record)
+	record, err := table.NewRecordSomeFields(table.fields[0], table.fields[1], table.fields[2])
+	record.validating = true
 
+	if err != nil {
+		t.Error(err)
+	}
+	err = record.Set(0, 42)
+	if err != nil {
+		t.Error(err)
+	}
+
+	err = record.Set(1, "mm")
+	if err != nil {
+		t.Error(err)
+	}
+
+	err = record.Set(2, 4.5)
+	if err != nil {
+		t.Error(err)
+	}
+	prepared, err := table.CreatePreparedStatementInsertFromRecord(new(DialectSqlite3), record)
+	log.Println("Prepared", prepared)
+
+	db, err := sql.Open("sqlite3", ":memory:")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	db.Exec("CREATE TABLE journals (id INTEGER PRIMARY KEY, firstname CHAR(24), age REAL, address VARCHAR(64), height REAL)")
+
+	tx, err := db.Begin()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	stmt, err := tx.Prepare(prepared)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	result, err := stmt.Exec(record.values...)
+	record.Set(0, 55)
+	result, err = stmt.Exec(record.values...)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Log(result.RowsAffected())
+	tx.Commit()
+
+}
+
+func TestRecordFromTableMetaTODO(t *testing.T) {
+	table, err := defaultTestTable()
+	if err != nil {
+		t.Error(err)
+	}
+	record, err := table.NewRecord()
+
+	err = record.Set(0, "mm")
+	if err != nil {
+		t.Error(err)
+	}
+	v := 44
+	err = record.Set(1, v)
+	if err != nil {
+		t.Error(err)
+	}
+	log.Printf("\nRecord: %v", *record)
+	log.Printf("\nValues: %v", record.values[0])
 }
 
 // This function -- TestValidateSqlite3 -- is a modified https://github.com/mattn/go-sqlite3/blob/master/_example/simple/simple.go

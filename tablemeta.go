@@ -39,22 +39,32 @@ func (t *TableMeta) Done() bool {
 	return t.done
 }
 
-func (t *TableMeta) NewRecord() (*Record, error) {
+func (t *TableMeta) NewRecordSomeFields(fields ...FieldMeta) (*Record, error) {
+	if fields == nil {
+		return nil, errors.New("Fields is nil")
+	}
+	if len(fields) == 0 {
+		return nil, errors.New("Fields zero length")
+	}
 	if !t.done {
 		return nil, errors.New("Cannot make new record: TableMeta must be done before using")
 	}
 
-	rec := new(Record)
-	rec.tableMeta = t
-	rec.values = make([]*Field, len(t.fields))
-	log.Println("fields", t.fields)
-	for i, _ := range rec.values {
-		rec.values[i] = new(Field)
-		log.Println(i, t.fields[i])
-		rec.values[i].fieldMeta = t.fields[i]
+	rec, err := newRecord(t, fields)
+	if err != nil {
+		return nil, err
+	}
+	log.Println("fields", fields)
+	return rec, nil
+}
+
+func (t *TableMeta) NewRecord() (*Record, error) {
+
+	if !t.done {
+		return nil, errors.New("Cannot make new record: TableMeta must be done before using")
 	}
 
-	return rec, nil
+	return t.NewRecordSomeFields(t.fields...)
 
 }
 
@@ -86,16 +96,27 @@ func (t *TableMeta) Add(f FieldMeta) error {
 	return nil
 }
 
-func (t *TableMeta) CreatePreparedStatementInsertAllFields(dialect Dialect) (string, error) {
-	a, b := t.CreatePreparedStatementInsertSomeFields(dialect, t.fields...)
-	return a, b
-}
-
 func (t *TableMeta) CreateTableString(dialect Dialect) (string, error) {
 	if !t.done {
 		return "", errors.New("Table must be done")
 	}
 	return dialect.CreateTableString(t), nil
+}
+
+func (t *TableMeta) CreatePreparedStatementInsertAllFields(dialect Dialect) (string, error) {
+	a, b := t.CreatePreparedStatementInsertSomeFields(dialect, t.fields...)
+	return a, b
+}
+
+func (t *TableMeta) CreatePreparedStatementInsertFromRecord(dialect Dialect, record *Record) (string, error) {
+	if record == nil {
+		return "", errors.New("Record cannot be nil")
+	}
+	fields := make([]FieldMeta, 0)
+	for i, _ := range record.values {
+		fields = append(fields, record.tableMeta.fields[i])
+	}
+	return t.CreatePreparedStatementInsertSomeFields(dialect, fields...)
 }
 
 func (t *TableMeta) CreatePreparedStatementInsertSomeFields(dialect Dialect, fields ...FieldMeta) (string, error) {

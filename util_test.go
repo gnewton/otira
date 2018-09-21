@@ -18,7 +18,7 @@ func defaultTestTable() (*TableMeta, error) {
 	f1.SetLength(24)
 	table.Add(f1)
 
-	f2 := new(FieldMetaInt)
+	f2 := new(FieldMetaFloat)
 	f2.SetName(fieldname2)
 	f2.SetLength(32)
 	table.Add(f2)
