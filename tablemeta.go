@@ -50,7 +50,7 @@ func (t *TableMeta) NewRecordSomeFields(fields ...FieldMeta) (*Record, error) {
 		return nil, errors.New("Cannot make new record: TableMeta must be done before using")
 	}
 
-	rec, err := newRecord(t, fields)
+	rec, err := newRecord(t, fields, nil)
 	if err != nil {
 		return nil, err
 	}

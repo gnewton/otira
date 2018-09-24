@@ -61,8 +61,6 @@ func TestRecordFromTableMeta(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	prepared, err := table.CreatePreparedStatementInsertFromRecord(new(DialectSqlite3), record)
-	log.Println("Prepared", prepared)
 
 	db, err := sql.Open("sqlite3", ":memory:")
 	if err != nil {
@@ -77,19 +75,26 @@ func TestRecordFromTableMeta(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	stmt, err := tx.Prepare(prepared)
+	record.Prepare(tx)
+
+	err = record.Insert()
 	if err != nil {
+		t.Log(err)
 		t.Fatal(err)
 	}
-
-	result, err := stmt.Exec(record.values...)
-	record.Set(0, 55)
-	result, err = stmt.Exec(record.values...)
-
-	if err != nil {
-		t.Fatal(err)
+	for i := 100; i < 50000; i++ {
+		//t.Log(i)
+		record.Reset()
+		record.Set(0, i)
+		//record.Insert()
+		err = record.Insert()
+		if err != nil {
+			t.Log(i)
+			t.Fatal(err)
+		}
 	}
-	t.Log(result.RowsAffected())
+
+	//t.Log(result.RowsAffected())
 	tx.Commit()
 
 }
