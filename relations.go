@@ -5,12 +5,12 @@ type Relation interface {
 }
 
 type BaseRelation struct {
-	name       string
-	leftTable  *TableMeta
-	rightTable *TableMeta
-	//rightTableUniqueFields []FieldMeta
-	leftKeyField  FieldMeta
-	rightKeyField FieldMeta
+	name                   string
+	leftTable              *TableMeta
+	rightTable             *TableMeta
+	rightTableUniqueFields []FieldMeta // fields to find out if a record exists; these fields are used in a lookup
+	leftKeyField           FieldMeta
+	rightKeyField          FieldMeta
 }
 
 func (rel *BaseRelation) Name() string {
