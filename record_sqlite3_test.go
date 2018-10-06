@@ -9,6 +9,12 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
+// func TestMain(m *testing.M) {
+// 	log.SetFlags(log.LstdFlags | log.Lshortfile)
+// 	// call flag.Parse() here if TestMain uses flags
+// 	os.Exit(m.Run())
+// }
+
 func TestCreatePrepared(t *testing.T) {
 	table, err := defaultTestTable()
 	if err != nil {
@@ -20,6 +26,36 @@ func TestCreatePrepared(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Log(prep)
+}
+
+func TestTableOneToMany(t *testing.T) {
+	_, _, _, err := oneToManyTestTable()
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestTableOneToManyRecord(t *testing.T) {
+
+	table, person, relation, err := oneToManyTestTable()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	tableRecord, err := table.NewRecord()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	personRecord, err := person.NewRecord()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = tableRecord.AddRelationRecord(relation, personRecord)
+	if err != nil {
+		t.Fatal(err)
+	}
 }
 
 func TestTableCreate(t *testing.T) {
@@ -36,7 +72,47 @@ func TestTableCreate(t *testing.T) {
 
 }
 
-func TestRecordFromTableMeta(t *testing.T) {
+func TestCreateTableSyntax(t *testing.T) {
+	table, err := defaultTestTable()
+	if err != nil {
+		t.Error(err)
+	}
+	db, err := sql.Open("sqlite3", ":memory:")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	create, err := table.CreateTableString(new(DialectSqlite3))
+	_, err = db.Exec(create)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+}
+
+func TestCreateTableSyntaxFail(t *testing.T) {
+	table, err := defaultTestTable()
+	if err != nil {
+		t.Error(err)
+	}
+	db, err := sql.Open("sqlite3", ":memory:")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	create, err := table.CreateTableString(new(DialectSqlite3))
+	_, err = db.Exec("ZZ " + create)
+
+	if err == nil {
+		t.Fatal(err)
+	}
+
+}
+
+func TestWriteRecordsFromTableMeta(t *testing.T) {
 	table, err := defaultTestTable()
 	if err != nil {
 		t.Error(err)
@@ -68,7 +144,14 @@ func TestRecordFromTableMeta(t *testing.T) {
 	}
 	defer db.Close()
 
-	db.Exec("CREATE TABLE journals (id INTEGER PRIMARY KEY, firstname CHAR(24), age REAL, address VARCHAR(64), height REAL)")
+	tableCreateSql, err := table.CreateTableString(new(DialectSqlite3))
+	t.Log("+++ Create table SQL: " + tableCreateSql)
+	_, err = db.Exec(tableCreateSql)
+
+	if err != nil {
+		t.Log("Failing table create SQL:", tableCreateSql)
+		t.Fatal(err)
+	}
 
 	tx, err := db.Begin()
 	if err != nil {
@@ -83,10 +166,8 @@ func TestRecordFromTableMeta(t *testing.T) {
 		t.Fatal(err)
 	}
 	for i := 100; i < 50000; i++ {
-		//t.Log(i)
 		record.Reset()
 		record.Set(0, i)
-		//record.Insert()
 		err = record.Insert()
 		if err != nil {
 			t.Log(i)

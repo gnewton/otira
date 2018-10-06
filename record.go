@@ -3,19 +3,21 @@ package otira
 import (
 	"database/sql"
 	"errors"
+	"log"
 	"strconv"
 )
 
 type Record struct {
-	values         []interface{}
-	isSet          []bool
-	tableMeta      *TableMeta
-	fields         []FieldMeta
-	fieldsMap      map[string]int
-	validating     bool
-	tx             *sql.Tx
-	stmt           *sql.Stmt
-	preparedString string
+	values          []interface{}
+	isSet           []bool
+	tableMeta       *TableMeta
+	fields          []FieldMeta
+	fieldsMap       map[string]int
+	validating      bool
+	tx              *sql.Tx
+	stmt            *sql.Stmt
+	preparedString  string
+	relationRecords []*Record
 }
 
 func (r *Record) Prepare(tx *sql.Tx) error {
@@ -74,6 +76,28 @@ func newRecord(tm *TableMeta, fields []FieldMeta, stmt *sql.Stmt) (*Record, erro
 		rec.fieldsMap[fields[i].Name()] = i
 	}
 	return rec, nil
+}
+
+func (r *Record) AddRelationRecord(rel Relation, record *Record) error {
+	if rel == nil {
+		return errors.New("Relation is nil")
+	}
+
+	if record == nil {
+		return errors.New("Record is nil")
+	}
+
+	if rel.Name() == "" {
+		return errors.New("Relation cannot have a zero length name")
+	}
+
+	switch v := rel.(type) {
+	case *OneToMany:
+		log.Println("===== " + v.String())
+	case *ManyToMany:
+		log.Println(v.String())
+	}
+	return nil
 }
 
 func (r *Record) Reset() error {

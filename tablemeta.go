@@ -6,14 +6,16 @@ import (
 )
 
 type TableMeta struct {
-	name       string
-	fields     []FieldMeta
-	fieldsMap  map[string]FieldMeta
-	inited     bool
-	oneToMany  []*OneToMany
-	manyToMany []*ManyToMany
-	indexes    []*Index
-	done       bool
+	name          string
+	fields        []FieldMeta
+	fieldsMap     map[string]FieldMeta
+	inited        bool
+	oneToMany     []*OneToMany
+	oneToManyMap  map[string]*OneToMany
+	manyToMany    []*ManyToMany
+	manyToManyMap map[string]*ManyToMany
+	indexes       []*Index
+	done          bool
 }
 
 func NewTableMeta(name string) (*TableMeta, error) {
@@ -21,6 +23,33 @@ func NewTableMeta(name string) (*TableMeta, error) {
 	t.name = name
 	t.done = false
 	return t, nil
+}
+
+func (t *TableMeta) AddOneToMany(rel *OneToMany) error {
+	if rel == nil {
+		return errors.New("OneToMany is nil")
+	}
+	if rel.name == "" {
+		return errors.New("Relation cannot have a zero length name")
+	}
+	log.Println("@@@@@@@@@@@@@@@ " + rel.name)
+	if t.oneToMany == nil {
+		t.oneToMany = make([]*OneToMany, 0)
+		t.oneToManyMap = make(map[string]*OneToMany)
+	}
+	t.oneToMany = append(t.oneToMany, rel)
+	t.oneToManyMap[rel.name] = rel
+	return nil
+}
+
+func (t *TableMeta) GetField(s string) FieldMeta {
+	fm, ok := t.fieldsMap[s]
+	if ok {
+		return fm
+	} else {
+		return nil
+	}
+
 }
 
 func (t *TableMeta) Fields() []FieldMeta {

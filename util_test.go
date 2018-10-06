@@ -1,5 +1,9 @@
 package otira
 
+import (
+	"errors"
+)
+
 func defaultTestTable() (*TableMeta, error) {
 	table, err := NewTableMeta(tablename)
 	if err != nil {
@@ -32,6 +36,56 @@ func defaultTestTable() (*TableMeta, error) {
 	f4.SetName(fieldname3)
 	table.Add(f4)
 
+	f5 := new(FieldMetaInt)
+	f5.SetName(tAddress)
+	table.Add(f5)
+
 	table.SetDone()
 	return table, nil
+}
+
+func oneToManyTestTable() (*TableMeta, *TableMeta, Relation, error) {
+	table, err := defaultTestTable()
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	address, err := NewTableMeta(tAddress)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	var f FieldMeta
+	f = new(FieldMetaInt)
+	f.SetName(pk)
+	f.SetPrimaryKey(true)
+	f.SetUnique(true)
+	address.Add(f)
+
+	f = new(FieldMetaString)
+	f.SetName(fstreet)
+	address.Add(f)
+
+	f = new(FieldMetaString)
+	f.SetName(fcity)
+	address.Add(f)
+
+	address.SetDone()
+
+	relation := new(OneToMany)
+	relation.name = "ADDRESS"
+	err = table.AddOneToMany(relation)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	relation.leftTable = table
+	relation.rightTable = address
+
+	relation.leftKeyField = table.GetField(tAddress)
+	if relation.leftKeyField == nil {
+		return nil, nil, nil, errors.New("Unable to find field [" + tAddress + "] in table [" + table.GetName() + "]")
+	}
+	relation.rightKeyField = f
+
+	return table, address, relation, nil
 }
