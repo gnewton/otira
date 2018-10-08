@@ -2,23 +2,27 @@ package otira
 
 import (
 	"database/sql"
-	"testing"
-
 	_ "github.com/mattn/go-sqlite3"
+	"testing"
 )
 
 func TestPersistSimple(t *testing.T) {
-
+	t.Log("hello")
 	db, err := sql.Open("sqlite3", ":memory:")
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer db.Close()
-	p, err := NewPersister(db, new(DialectSqlite3), 10)
+
+	pers, err := NewPersister(db, new(DialectSqlite3), 10)
 	if err != nil {
 		t.Fatal(err)
 	}
-	close(p.incoming)
+
+	t.Log("hello")
+	pers.Done()
+	t.Log("fpp hello")
+
 }
 
 func TestPersistFewRecords(t *testing.T) {
@@ -27,7 +31,40 @@ func TestPersistFewRecords(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
-	p, err := NewPersister(db, new(DialectSqlite3), 10)
+	pers, err := NewPersister(db, new(DialectSqlite3), 10)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer pers.Done()
+
+	table, err := defaultTestTable()
+	if err != nil {
+		t.Error(err)
+	}
+
+	for i := 0; i < 100; i++ {
+		tableRecord, err := table.NewRecord()
+		if err != nil {
+			t.Fatal(err)
+		}
+		t.Log("TestPersistFewRecords")
+		t.Log(*tableRecord)
+
+		err = pers.Save(tableRecord)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
+}
+
+func TestPersistFewRecordsWithCancel(t *testing.T) {
+	db, err := sql.Open("sqlite3", ":memory:")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	pers, err := NewPersister(db, new(DialectSqlite3), 10)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -36,16 +73,21 @@ func TestPersistFewRecords(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-
-	for i := 0; i < 10; i++ {
+	table.name = "foobar"
+	for i := 0; i < 100; i++ {
 		tableRecord, err := table.NewRecord()
 		if err != nil {
 			t.Fatal(err)
 		}
-		p.incoming <- tableRecord
+		t.Log("TestPersistFewRecordsWithCancel")
+		t.Log(*tableRecord)
+		pers.Save(tableRecord)
+		if i == 5 {
+			pers.cancelFunc()
+			break
+		}
 	}
-
-	close(p.incoming)
+	pers.Done()
 }
 
 ///// FAILS /////
@@ -70,7 +112,6 @@ func TestNoDialectFail(t *testing.T) {
 }
 
 func TestPersistBadNumFail(t *testing.T) {
-
 	db, err := sql.Open("sqlite3", ":memory:")
 	if err != nil {
 		t.Fatal(err)
@@ -81,5 +122,4 @@ func TestPersistBadNumFail(t *testing.T) {
 	if err == nil {
 		t.Fatal(err)
 	}
-
 }

@@ -83,7 +83,7 @@ func (t *TableMeta) NewRecordSomeFields(fields ...FieldMeta) (*Record, error) {
 	if err != nil {
 		return nil, err
 	}
-	log.Println("fields", fields)
+	//log.Println("fields", fields)
 	return rec, nil
 }
 
