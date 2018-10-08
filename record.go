@@ -148,3 +148,11 @@ func (r *Record) Insert() error {
 	_, err := r.stmt.Exec(r.Values()...)
 	return err
 }
+
+func (r *Record) insert() error {
+	if r.stmt == nil {
+		return errors.New("Record statement is nil")
+	}
+	_, err := r.stmt.Exec(r.Values()...)
+	return err
+}
