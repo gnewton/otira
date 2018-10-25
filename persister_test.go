@@ -37,7 +37,7 @@ func TestPersistFewRecords(t *testing.T) {
 	}
 	defer pers.Done()
 
-	table, err := defaultTestTable()
+	table, err := newDefaultTestTable()
 	if err != nil {
 		t.Error(err)
 	}
@@ -69,7 +69,7 @@ func TestPersistFewRecordsWithCancel(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	table, err := defaultTestTable()
+	table, err := newDefaultTestTable()
 	if err != nil {
 		t.Error(err)
 	}

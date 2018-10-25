@@ -25,6 +25,16 @@ func NewTableMeta(name string) (*TableMeta, error) {
 	return t, nil
 }
 
+func (t *TableMeta) GetOneToMany(k string) *OneToMany {
+	rel, ok := t.oneToManyMap[k]
+	if ok {
+		return rel
+	} else {
+		return nil
+	}
+
+}
+
 func (t *TableMeta) AddOneToMany(rel *OneToMany) error {
 	if rel == nil {
 		return errors.New("OneToMany is nil")

@@ -9,7 +9,7 @@ import (
 
 type Record struct {
 	values          []interface{}
-	isSet           []bool
+	valueIsSet      []bool
 	tableMeta       *TableMeta
 	fields          []FieldMeta
 	fieldsMap       map[string]int
@@ -17,7 +17,12 @@ type Record struct {
 	tx              *sql.Tx
 	stmt            *sql.Stmt
 	preparedString  string
-	relationRecords []*Record
+	relationRecords []*RelationRecord
+}
+
+type RelationRecord struct {
+	record   *Record
+	relation Relation
 }
 
 func (r *Record) Prepare(tx *sql.Tx) error {
@@ -63,7 +68,7 @@ func newRecord(tm *TableMeta, fields []FieldMeta, stmt *sql.Stmt) (*Record, erro
 	rec.tableMeta = tm
 
 	rec.values = make([]interface{}, len(fields))
-	rec.isSet = make([]bool, len(fields))
+	rec.valueIsSet = make([]bool, len(fields))
 	rec.fields = fields
 	if stmt == nil {
 		rec.stmt = stmt
@@ -90,10 +95,15 @@ func (r *Record) AddRelationRecord(rel Relation, record *Record) error {
 	if rel.Name() == "" {
 		return errors.New("Relation cannot have a zero length name")
 	}
-
+	relationRecord := new(RelationRecord)
+	relationRecord.record = record
+	relationRecord.relation = rel
+	r.relationRecords = append(r.relationRecords, relationRecord)
+	// TODO
 	switch v := rel.(type) {
 	case *OneToMany:
 		log.Println("===== " + v.String())
+
 	case *ManyToMany:
 		log.Println(v.String())
 	}
@@ -137,7 +147,7 @@ func (r *Record) Set(i int, v interface{}) error {
 		}
 	}
 	r.values[i] = v
-	r.isSet[i] = true
+	r.valueIsSet[i] = true
 	return nil
 }
 

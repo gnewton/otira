@@ -19,6 +19,8 @@ type Persister struct {
 	incoming           chan *Record
 	preparedStatements map[string]*sql.Stmt
 	preparedStrings    map[string]string
+
+	relationPKCacheMap map[Relation]map[string]int64
 }
 
 // needs to also have
@@ -50,6 +52,7 @@ func NewPersister(db *sql.DB, dialect Dialect, size int) (*Persister, error) {
 
 	pers.preparedStatements = make(map[string]*sql.Stmt, 0)
 	pers.preparedStrings = make(map[string]string, 0)
+	pers.relationPKCacheMap = make(map[Relation]map[string]int64)
 
 	pers.wg.Add(1)
 	go pers.start()
@@ -62,8 +65,7 @@ func (pers *Persister) Save(record *Record) error {
 		return errors.New("Record cannot be nil")
 	}
 
-	pers.saveOneToManyRecords(record)
-	pers.savemanyTomanyRecords(record)
+	pers.saveRelationRecords(record)
 
 	pers.incoming <- record
 
@@ -78,10 +80,34 @@ func (pers *Persister) Done() error {
 	return nil
 }
 
-func (pers *Persister) saveOneToManyRecords(record *Record) {
+func (pers *Persister) saveRelationRecords(record *Record) {
+	for i := 0; i < len(record.relationRecords); i++ {
+		rr := record.relationRecords[i]
+
+		switch v := rr.relation.(type) {
+		case *OneToMany:
+			pers.saveOneToManyRecord(record, rr.record, v)
+		case *ManyToMany:
+			pers.saveManyToManyRecord(record, rr.record, v)
+			log.Println(v.String())
+		}
+	}
+}
+
+func (pers *Persister) saveOneToManyRecord(record *Record, relationRecord *Record, relation *OneToMany) {
+	var relationPKCache map[string]int64
+	var ok bool
+	if relationPKCache, ok = pers.relationPKCacheMap[relation]; !ok {
+		relationPKCache = make(map[string]int64)
+		pers.relationPKCacheMap[relation] = relationPKCache
+	}
+
+	//k, err := makeKey(relationRecord, relation)
+	_, _ = findRelationPK(relationRecord, relation)
 
 }
-func (pers *Persister) savemanyTomanyRecords(record *Record) {
+
+func (pers *Persister) saveManyToManyRecord(record *Record, relationRecord *Record, relation *ManyToMany) {
 
 }
 

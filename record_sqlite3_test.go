@@ -2,6 +2,7 @@ package otira
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"log"
 	"testing"
@@ -15,8 +16,8 @@ import (
 // 	os.Exit(m.Run())
 // }
 
-func TestCreatePrepared(t *testing.T) {
-	table, err := defaultTestTable()
+func TestNewPreparedStatement(t *testing.T) {
+	table, err := newDefaultTestTable()
 	if err != nil {
 		t.Error(err)
 	}
@@ -28,16 +29,16 @@ func TestCreatePrepared(t *testing.T) {
 	t.Log(prep)
 }
 
-func TestTableOneToMany(t *testing.T) {
-	_, _, _, err := oneToManyTestTable()
+func TestNewTableOneToMany(t *testing.T) {
+	_, _, _, err := newOneToManyTestTable()
 	if err != nil {
 		t.Fatal(err)
 	}
 }
 
-func TestTableOneToManyRecord(t *testing.T) {
+func TestAddOneToManyRecordToMainRecord(t *testing.T) {
 
-	table, person, relation, err := oneToManyTestTable()
+	table, person, relation, err := newOneToManyTestTable()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -58,8 +59,21 @@ func TestTableOneToManyRecord(t *testing.T) {
 	}
 }
 
+func TestAddOneToManyRecordToMainRecordByRelationStringName_BadName(t *testing.T) {
+
+	table, _, _, err := newOneToManyTestTable()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	relation := table.GetOneToMany(ADDRESS + "m")
+	if relation != nil {
+		t.Fatal(errors.New("Cannot find the relation by string key"))
+	}
+}
+
 func TestTableCreate(t *testing.T) {
-	table, err := defaultTestTable()
+	table, err := newDefaultTestTable()
 	if err != nil {
 		t.Error(err)
 	}
@@ -73,7 +87,7 @@ func TestTableCreate(t *testing.T) {
 }
 
 func TestCreateTableSyntax(t *testing.T) {
-	table, err := defaultTestTable()
+	table, err := newDefaultTestTable()
 	if err != nil {
 		t.Error(err)
 	}
@@ -93,7 +107,7 @@ func TestCreateTableSyntax(t *testing.T) {
 }
 
 func TestCreateTableSyntaxFail(t *testing.T) {
-	table, err := defaultTestTable()
+	table, err := newDefaultTestTable()
 	if err != nil {
 		t.Error(err)
 	}
@@ -113,7 +127,7 @@ func TestCreateTableSyntaxFail(t *testing.T) {
 }
 
 func TestWriteRecordsFromTableMeta(t *testing.T) {
-	table, err := defaultTestTable()
+	table, err := newDefaultTestTable()
 	if err != nil {
 		t.Error(err)
 	}
@@ -181,7 +195,7 @@ func TestWriteRecordsFromTableMeta(t *testing.T) {
 }
 
 func TestRecordFromTableMetaTODO(t *testing.T) {
-	table, err := defaultTestTable()
+	table, err := newDefaultTestTable()
 	if err != nil {
 		t.Error(err)
 	}

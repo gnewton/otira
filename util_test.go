@@ -4,7 +4,9 @@ import (
 	"errors"
 )
 
-func defaultTestTable() (*TableMeta, error) {
+const ADDRESS = "ADDRESS"
+
+func newDefaultTestTable() (*TableMeta, error) {
 	table, err := NewTableMeta(tablename)
 	if err != nil {
 		return nil, err
@@ -44,8 +46,8 @@ func defaultTestTable() (*TableMeta, error) {
 	return table, nil
 }
 
-func oneToManyTestTable() (*TableMeta, *TableMeta, Relation, error) {
-	table, err := defaultTestTable()
+func newOneToManyTestTable() (*TableMeta, *TableMeta, Relation, error) {
+	table, err := newDefaultTestTable()
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -55,25 +57,26 @@ func oneToManyTestTable() (*TableMeta, *TableMeta, Relation, error) {
 		return nil, nil, nil, err
 	}
 
-	var f FieldMeta
-	f = new(FieldMetaInt)
-	f.SetName(pk)
-	f.SetPrimaryKey(true)
-	f.SetUnique(true)
-	address.Add(f)
+	var street FieldMeta
+	street = new(FieldMetaString)
+	street.SetName(fstreet)
+	address.Add(street)
 
-	f = new(FieldMetaString)
-	f.SetName(fstreet)
-	address.Add(f)
+	var city FieldMeta
+	city = new(FieldMetaString)
+	city.SetName(fcity)
+	address.Add(city)
 
-	f = new(FieldMetaString)
-	f.SetName(fcity)
-	address.Add(f)
-
+	var pk FieldMeta
+	pk = new(FieldMetaInt)
+	pk.SetName("id")
+	pk.SetPrimaryKey(true)
+	pk.SetUnique(true)
+	address.Add(pk)
 	address.SetDone()
 
 	relation := new(OneToMany)
-	relation.name = "ADDRESS"
+	relation.name = ADDRESS
 	err = table.AddOneToMany(relation)
 	if err != nil {
 		return nil, nil, nil, err
@@ -81,11 +84,13 @@ func oneToManyTestTable() (*TableMeta, *TableMeta, Relation, error) {
 	relation.leftTable = table
 	relation.rightTable = address
 
+	relation.rightTableUniqueFields = []FieldMeta{city, street}
+
 	relation.leftKeyField = table.GetField(tAddress)
 	if relation.leftKeyField == nil {
 		return nil, nil, nil, errors.New("Unable to find field [" + tAddress + "] in table [" + table.GetName() + "]")
 	}
-	relation.rightKeyField = f
+	relation.rightKeyField = pk
 
 	return table, address, relation, nil
 }
