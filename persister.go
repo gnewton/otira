@@ -16,7 +16,7 @@ type Persister struct {
 	dialect            Dialect
 	db                 *sql.DB
 	tx                 *sql.Tx
-	incoming           chan *Record
+	incoming           chan []*Record
 	preparedStatements map[string]*sql.Stmt
 	preparedStrings    map[string]string
 
@@ -48,7 +48,7 @@ func NewPersister(db *sql.DB, dialect Dialect, size int) (*Persister, error) {
 	//pers.ctx = ctx
 	pers.db = db
 	pers.dialect = dialect
-	pers.incoming = make(chan *Record, size)
+	pers.incoming = make(chan []*Record, size)
 
 	pers.preparedStatements = make(map[string]*sql.Stmt, 0)
 	pers.preparedStrings = make(map[string]string, 0)
@@ -60,14 +60,20 @@ func NewPersister(db *sql.DB, dialect Dialect, size int) (*Persister, error) {
 	return pers, nil
 }
 
+// Saves record and associated relations records
 func (pers *Persister) Save(record *Record) error {
 	if record == nil {
 		return errors.New("Record cannot be nil")
 	}
 
-	pers.saveRelationRecords(record)
+	records, err := pers.prepareRelationRecords(record)
+	if err != nil {
+		return err
+	}
 
-	pers.incoming <- record
+	records = append(records, record)
+
+	pers.incoming <- records
 
 	return nil
 }
@@ -80,23 +86,27 @@ func (pers *Persister) Done() error {
 	return nil
 }
 
-func (pers *Persister) saveRelationRecords(record *Record) {
+func (pers *Persister) prepareRelationRecords(record *Record) ([]*Record, error) {
+	var relationRecords []*Record
+	//relationRecords := make([]*Record, 0)
 	for i := 0; i < len(record.relationRecords); i++ {
 		rr := record.relationRecords[i]
 
 		switch v := rr.relation.(type) {
 		case *OneToMany:
-			pers.saveOneToManyRecord(record, rr.record, v)
+			relationRecords = append(relationRecords, pers.prepareOneToManyRecord(record, rr.record, v)...)
 		case *ManyToMany:
-			pers.saveManyToManyRecord(record, rr.record, v)
+			relationRecords = append(relationRecords, pers.prepareManyToManyRecord(record, rr.record, v)...)
 			log.Println(v.String())
 		}
 	}
+	return relationRecords, nil
 }
 
-func (pers *Persister) saveOneToManyRecord(record *Record, relationRecord *Record, relation *OneToMany) {
+func (pers *Persister) prepareOneToManyRecord(record *Record, relationRecord *Record, relation *OneToMany) []*Record {
 	var relationPKCache map[string]int64
 	var ok bool
+	oneToManyRecords := make([]*Record, 0)
 	if relationPKCache, ok = pers.relationPKCacheMap[relation]; !ok {
 		relationPKCache = make(map[string]int64)
 		pers.relationPKCacheMap[relation] = relationPKCache
@@ -104,18 +114,24 @@ func (pers *Persister) saveOneToManyRecord(record *Record, relationRecord *Recor
 
 	//k, err := makeKey(relationRecord, relation)
 	_, _ = findRelationPK(relationRecord, relation)
-
+	return oneToManyRecords
 }
 
-func (pers *Persister) saveManyToManyRecord(record *Record, relationRecord *Record, relation *ManyToMany) {
+func (pers *Persister) prepareManyToManyRecord(record *Record, relationRecord *Record, relation *ManyToMany) []*Record {
+	manyToManyRecords := make([]*Record, 0)
+	return manyToManyRecords
+}
 
+func (pers *Persister) save(record *Record) error {
+
+	return nil
 }
 
 func (pers *Persister) start() {
 	defer pers.wg.Done()
 	n := 0
 
-	for record := range pers.incoming {
+	for records := range pers.incoming {
 		select {
 		case <-pers.ctx.Done():
 			log.Println("Cancel closing!!!!!!!!!!!")
@@ -123,23 +139,26 @@ func (pers *Persister) start() {
 		default:
 		}
 
-		n++
-		if record != nil {
-			tableName := record.tableMeta.name
-			// if preparedStatement, ok := pers.preparedStatements[tableName]; !ok {
-			// 	if preparedString, ok2 := pers.preparedStrings[tableName]; !ok {
-			// 		preparedString, _ = record.tableMeta.CreatePreparedStatementInsertFromRecord(pers.dialect, record)
-			// 		pers.preparedStrings[tableName] = preparedString
+		for i := 0; i < len(records); i++ {
+			record := records[i]
+			n++
+			if record != nil {
+				tableName := record.tableMeta.name
+				// if preparedStatement, ok := pers.preparedStatements[tableName]; !ok {
+				// 	if preparedString, ok2 := pers.preparedStrings[tableName]; !ok {
+				// 		preparedString, _ = record.tableMeta.CreatePreparedStatementInsertFromRecord(pers.dialect, record)
+				// 		pers.preparedStrings[tableName] = preparedString
 
-			// 	}
-			// 	preparedStatement, err = record.tx.Prepare(r.preparedString)
-			// }
-			log.Println(strconv.Itoa(n) + " FOO " + tableName)
-		} else {
-			log.Println(strconv.Itoa(n) + " A--nil--")
+				// 	}
+				// 	preparedStatement, err = record.tx.Prepare(r.preparedString)
+				// }
+				log.Println(strconv.Itoa(n) + " FOO " + tableName)
+			} else {
+				log.Println(strconv.Itoa(n) + " A--nil--")
+			}
+			//pers.Save(record)
+
 		}
-		//pers.Save(record)
-
 	}
 	// var err error
 	// pers.tx, err = pers.db.Begin()
