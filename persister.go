@@ -122,9 +122,65 @@ func (pers *Persister) prepareManyToManyRecord(record *Record, relationRecord *R
 	return manyToManyRecords
 }
 
-func (pers *Persister) save(record *Record) error {
+func (pers *Persister) preparedStatement(record *Record) (*sql.Stmt, error) {
+	var ok bool
+	var stmt *sql.Stmt
+	if stmt, ok = pers.preparedStatements[record.tableMeta.name]; !ok {
+		preparedString, err := record.tableMeta.CreatePreparedStatementInsertAllFields(pers.dialect)
+		if err != nil {
+			return nil, err
+		}
+		stmt, err = pers.tx.Prepare(preparedString)
+		if err != nil {
+			return nil, err
+		}
+		pers.preparedStatements[record.tableMeta.name] = stmt
+	}
+	return stmt, nil
+}
 
-	return nil
+func (pers *Persister) save(record *Record) error {
+	stmt, err := pers.preparedStatement(record)
+	if err != nil {
+		return err
+	}
+	_, err = stmt.Exec(record.Values()...)
+	return err
+}
+
+func (pers *Persister) CreatePreparedStatementInsertAllFields(record *Record) (string, error) {
+	a, b := pers.CreatePreparedStatementInsertSomeFields(record.tableMeta.name, record.tableMeta.fields...)
+	return a, b
+}
+
+func (pers *Persister) CreatePreparedStatementInsertFromRecord(record *Record) (string, error) {
+	if record == nil {
+		return "", errors.New("Record cannot be nil")
+	}
+	fields := make([]FieldMeta, 0)
+	for i, _ := range record.values {
+		fields = append(fields, record.tableMeta.fields[i])
+	}
+	return pers.CreatePreparedStatementInsertSomeFields(record.tableMeta.name, fields...)
+}
+
+func (pers *Persister) CreatePreparedStatementInsertSomeFields(tablename string, fields ...FieldMeta) (string, error) {
+	st := "INSERT INTO " + tablename + " ("
+	values := "("
+	for i, _ := range fields {
+		if i != 0 {
+			st += ", "
+			values += ", "
+		}
+		st += fields[i].Name()
+		values += preparedValueFormat(pers.dialect, i)
+	}
+
+	st += ")"
+	values += ")"
+
+	st = st + " VALUES " + values
+	return st, nil
 }
 
 func (pers *Persister) start() {
