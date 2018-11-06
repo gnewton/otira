@@ -122,11 +122,25 @@ func (pers *Persister) prepareManyToManyRecord(record *Record, relationRecord *R
 	return manyToManyRecords
 }
 
+func (pers *Persister) preparedString(record *Record) (string, error) {
+	var ok bool
+	var preparedString string
+	if preparedString, ok = pers.preparedStrings[record.tableMeta.name]; !ok {
+		preparedString, err := record.tableMeta.CreatePreparedStatementInsertAllFields(pers.dialect)
+		if err != nil {
+			return "", err
+		}
+		pers.preparedStrings[record.tableMeta.name] = preparedString
+	}
+	return preparedString, nil
+}
+
 func (pers *Persister) preparedStatement(record *Record) (*sql.Stmt, error) {
 	var ok bool
 	var stmt *sql.Stmt
 	if stmt, ok = pers.preparedStatements[record.tableMeta.name]; !ok {
-		preparedString, err := record.tableMeta.CreatePreparedStatementInsertAllFields(pers.dialect)
+		//preparedString, err := record.tableMeta.CreatePreparedStatementInsertAllFields(pers.dialect)
+		preparedString, err := pers.preparedString(record)
 		if err != nil {
 			return nil, err
 		}
@@ -135,6 +149,7 @@ func (pers *Persister) preparedStatement(record *Record) (*sql.Stmt, error) {
 			return nil, err
 		}
 		pers.preparedStatements[record.tableMeta.name] = stmt
+		pers.preparedStrings[record.tableMeta.name] = preparedString
 	}
 	return stmt, nil
 }
