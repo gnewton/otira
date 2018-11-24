@@ -60,6 +60,12 @@ func TestCreatePreparedStatementInsert(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
+
+	pk := new(FieldMetaInt)
+	pk.SetName("id")
+	pk.SetPrimaryKey(true)
+	t.Log(pk.String())
+	err = table.Add(pk)
 	f := new(FieldMetaString)
 	f.SetName(fieldname0)
 	t.Log(f.String())
@@ -67,10 +73,13 @@ func TestCreatePreparedStatementInsert(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	table.SetDone()
-	s := INSERT + tablename + " (" + fieldname0 + ") " + VALUES + " ($1)"
+	err = table.SetDone()
+	if err != nil {
+		t.Error(err)
+	}
+	s := INSERT + tablename + " (id, " + fieldname0 + ") " + VALUES + " ($1, $2)"
 	dialect := new(DialectPostgresql)
-	p, err := table.CreatePreparedStatementInsertSomeFields(dialect, f)
+	p, err := table.CreatePreparedStatementInsertSomeFields(dialect, pk, f)
 	if err != nil {
 		t.Error(err)
 	}
@@ -83,4 +92,27 @@ func TestCreatePreparedStatementInsert(t *testing.T) {
 	//TODO
 	//t.Error(err)
 
+}
+
+func TestDetectNoPrimaryKeyWithValidate(t *testing.T) {
+	table, err := NewTableMeta(tablename)
+	if err != nil {
+		t.Error(err)
+	}
+
+	f0 := new(FieldMetaInt)
+	f0.SetName(pk)
+	f0.SetUnique(true)
+	table.Add(f0)
+
+	f1 := new(FieldMetaString)
+	f1.SetName(fieldname0)
+	f1.SetFixed(true)
+	f1.SetLength(24)
+	table.Add(f1)
+
+	err = table.SetDone()
+	if err == nil {
+		t.Error(err)
+	}
 }

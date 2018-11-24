@@ -3,6 +3,7 @@ package otira
 import (
 	"errors"
 	"log"
+	"strconv"
 )
 
 type TableMeta struct {
@@ -16,6 +17,7 @@ type TableMeta struct {
 	manyToManyMap map[string]*ManyToMany
 	indexes       []*Index
 	done          bool
+	ICounter
 }
 
 func NewTableMeta(name string) (*TableMeta, error) {
@@ -70,8 +72,32 @@ func (t *TableMeta) GetName() string {
 	return t.name
 }
 
-func (t *TableMeta) SetDone() {
+func (t *TableMeta) SetDone() error {
+
+	err := t.validate()
+	if err != nil {
+		log.Println(err)
+		return err
+	}
 	t.done = true
+	return nil
+}
+
+// check kto see if there is one and only one primary key
+func (t *TableMeta) validate() error {
+	if t.fields == nil {
+		return errors.New("fields is nil")
+	}
+	numPrimaryKeys := 0
+	for i := 0; i < len(t.fields); i++ {
+		if t.fields[i].PrimaryKey() {
+			numPrimaryKeys++
+		}
+	}
+	if numPrimaryKeys != 1 {
+		return errors.New("Num primary keys != 1; equals:" + strconv.Itoa(numPrimaryKeys))
+	}
+	return nil
 }
 
 func (t *TableMeta) Done() bool {
@@ -155,6 +181,11 @@ func (t *TableMeta) CreatePreparedStatementInsertFromRecord(dialect Dialect, rec
 	for i, _ := range record.values {
 		fields = append(fields, record.tableMeta.fields[i])
 	}
+	err := t.SetDone()
+	if err != nil {
+		return "", err
+	}
+
 	return t.CreatePreparedStatementInsertSomeFields(dialect, fields...)
 }
 

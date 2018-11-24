@@ -166,3 +166,7 @@ func (r *Record) insert() error {
 	_, err := r.stmt.Exec(r.Values()...)
 	return err
 }
+
+//func (r *Record) SetPrimaryKey() error {
+
+//}

@@ -42,6 +42,8 @@ func TestPersistFewRecords(t *testing.T) {
 		t.Error(err)
 	}
 
+	table.SetDone()
+
 	for i := 0; i < 100; i++ {
 		tableRecord, err := table.NewRecord()
 		if err != nil {

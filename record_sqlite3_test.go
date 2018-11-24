@@ -132,12 +132,20 @@ func TestWriteRecordsFromTableMeta(t *testing.T) {
 		t.Error(err)
 	}
 	record, err := table.NewRecordSomeFields(table.fields[0], table.fields[1], table.fields[2])
+	if err != nil {
+		t.Error(err)
+	}
 	record.validating = true
 
 	if err != nil {
 		t.Error(err)
 	}
 	err = record.Set(0, 42)
+	v, err := record.tableMeta.Next()
+	if err != nil {
+		t.Error(err)
+	}
+	err = record.Set(0, v)
 	if err != nil {
 		t.Error(err)
 	}
