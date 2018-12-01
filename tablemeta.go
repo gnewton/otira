@@ -3,7 +3,6 @@ package otira
 import (
 	"errors"
 	"log"
-	"strconv"
 )
 
 type TableMeta struct {
@@ -11,6 +10,7 @@ type TableMeta struct {
 	fields        []FieldMeta
 	fieldsMap     map[string]FieldMeta
 	inited        bool
+	primaryKey    FieldMeta
 	oneToMany     []*OneToMany
 	oneToManyMap  map[string]*OneToMany
 	manyToMany    []*ManyToMany
@@ -26,6 +26,10 @@ func NewTableMeta(name string) (*TableMeta, error) {
 	t.name = name
 	t.done = false
 	return t, nil
+}
+
+func (t *TableMeta) SetPrimaryKey(pk FieldMeta) {
+	t.primaryKey = pk
 }
 
 func (t *TableMeta) SetDiscrimFields(fields ...FieldMeta) {
@@ -93,14 +97,8 @@ func (t *TableMeta) validate() error {
 	if t.fields == nil {
 		return errors.New("fields is nil")
 	}
-	numPrimaryKeys := 0
-	for i := 0; i < len(t.fields); i++ {
-		if t.fields[i].PrimaryKey() {
-			numPrimaryKeys++
-		}
-	}
-	if numPrimaryKeys != 1 {
-		return errors.New("Num primary keys != 1; equals:" + strconv.Itoa(numPrimaryKeys))
+	if t.primaryKey == nil {
+		return errors.New("Primary key must be set")
 	}
 	return nil
 }

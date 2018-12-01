@@ -23,9 +23,9 @@ func (d *DialectSqlite3) CreateTableString(t *TableMeta) string {
 }
 
 func (d *DialectSqlite3) Constraints(fm FieldMeta) string {
-	if fm.PrimaryKey() {
-		return " PRIMARY KEY"
-	}
+	//if fm.PrimaryKey() {
+	//return " PRIMARY KEY"
+	//}
 	return ""
 }
 

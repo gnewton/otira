@@ -13,8 +13,8 @@ type FieldMeta interface {
 	SetIndexed(bool)
 	Nullable() bool
 	SetNullable(bool)
-	PrimaryKey() bool
-	SetPrimaryKey(bool)
+	//PrimaryKey() bool
+	//SetPrimaryKey(bool)
 	String() string
 	SetFixed(bool)
 	Fixed() bool

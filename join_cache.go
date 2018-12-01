@@ -5,11 +5,34 @@ import (
 )
 
 type joinCache struct {
-	keys map[string]int64
+	joinKeys map[string]uint64
+}
+
+func NewJoinCache() *joinCache {
+	jc := new(joinCache)
+	jc.joinKeys = make(map[string]uint64)
+	return jc
+}
+
+func (jc *joinCache) GetJoinKey(r *Record) (uint64, bool, error) {
+	cacheKey, err := makeKey(r)
+	if err != nil {
+		return 0, true, err
+	}
+	joinKey, exists := jc.joinKeys[cacheKey]
+	if !exists {
+		joinKey, err = r.tableMeta.Next()
+		if err != nil {
+			return 0, true, err
+		}
+		jc.joinKeys[cacheKey] = joinKey
+	}
+
+	return joinKey, exists, nil
+
 }
 
 func (jc *joinCache) getJoinKey(r *Record) {
-
 	_, _ = makeKey(r)
 	//return nil
 }

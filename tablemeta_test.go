@@ -35,6 +35,7 @@ func TestAddFieldToTable(t *testing.T) {
 	f.SetName(f_firstname)
 	t.Log(f.String())
 	table.Add(f)
+	table.SetPrimaryKey(f)
 	table.SetDone()
 }
 
@@ -45,6 +46,7 @@ func TestAddComplexIndexToTable(t *testing.T) {
 	}
 	f := new(FieldMetaString)
 	f.SetName("people")
+	table.SetPrimaryKey(f)
 	t.Log(f.String())
 	err = table.Add(f)
 	if err != nil {
@@ -64,6 +66,7 @@ func TestCreatePreparedStatementInsert(t *testing.T) {
 	pk := new(FieldMetaInt)
 	pk.SetName("id")
 	pk.SetPrimaryKey(true)
+	table.SetPrimaryKey(pk)
 	t.Log(pk.String())
 	err = table.Add(pk)
 	f := new(FieldMetaString)

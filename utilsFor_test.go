@@ -17,6 +17,7 @@ func newDefaultTestTable(singleDiscrimField bool) (*TableMeta, error) {
 	f0.SetPrimaryKey(true)
 	f0.SetUnique(true)
 	table.Add(f0)
+	table.SetPrimaryKey(f0)
 
 	f1 := new(FieldMetaString)
 	f1.SetName(f_firstname)
@@ -101,9 +102,9 @@ func newOneToManyTestTable() (*TableMeta, *TableMeta, Relation, error) {
 	var pk FieldMeta
 	pk = new(FieldMetaInt)
 	pk.SetName("id")
-	pk.SetPrimaryKey(true)
 	pk.SetUnique(true)
 	address.Add(pk)
+	address.SetPrimaryKey(pk)
 	address.SetDone()
 
 	relation := new(OneToMany)
