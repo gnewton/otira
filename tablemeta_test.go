@@ -15,10 +15,10 @@ func TestCreateTable(t *testing.T) {
 }
 
 const tablename = "person"
-const fieldname0 = "firstname"
-const fieldname1 = "birth"
-const fieldname2 = "age"
-const fieldname3 = "height"
+const f_firstname = "firstname"
+const f_birth = "birth"
+const f_age = "age"
+const f_height = "height"
 const tAddress = "address"
 const fstreet = "street"
 const fcity = "city"
@@ -32,7 +32,7 @@ func TestAddFieldToTable(t *testing.T) {
 		t.Error(err)
 	}
 	f := new(FieldMetaString)
-	f.SetName(fieldname0)
+	f.SetName(f_firstname)
 	t.Log(f.String())
 	table.Add(f)
 	table.SetDone()
@@ -67,7 +67,7 @@ func TestCreatePreparedStatementInsert(t *testing.T) {
 	t.Log(pk.String())
 	err = table.Add(pk)
 	f := new(FieldMetaString)
-	f.SetName(fieldname0)
+	f.SetName(f_firstname)
 	t.Log(f.String())
 	err = table.Add(f)
 	if err != nil {
@@ -77,7 +77,7 @@ func TestCreatePreparedStatementInsert(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	s := INSERT + tablename + " (id, " + fieldname0 + ") " + VALUES + " ($1, $2)"
+	s := INSERT + tablename + " (id, " + f_firstname + ") " + VALUES + " ($1, $2)"
 	dialect := new(DialectPostgresql)
 	p, err := table.CreatePreparedStatementInsertSomeFields(dialect, pk, f)
 	if err != nil {
@@ -106,7 +106,7 @@ func TestDetectNoPrimaryKeyWithValidate(t *testing.T) {
 	table.Add(f0)
 
 	f1 := new(FieldMetaString)
-	f1.SetName(fieldname0)
+	f1.SetName(f_firstname)
 	f1.SetFixed(true)
 	f1.SetLength(24)
 	table.Add(f1)

@@ -18,6 +18,7 @@ type TableMeta struct {
 	indexes       []*Index
 	done          bool
 	ICounter
+	discrimFields []FieldMeta
 }
 
 func NewTableMeta(name string) (*TableMeta, error) {
@@ -25,6 +26,10 @@ func NewTableMeta(name string) (*TableMeta, error) {
 	t.name = name
 	t.done = false
 	return t, nil
+}
+
+func (t *TableMeta) SetDiscrimFields(fields ...FieldMeta) {
+	t.discrimFields = fields
 }
 
 func (t *TableMeta) GetOneToMany(k string) *OneToMany {
@@ -161,9 +166,12 @@ func (t *TableMeta) Add(f FieldMeta) error {
 	return nil
 }
 
-func (t *TableMeta) CreateTableString(dialect Dialect) (string, error) {
+func (t *TableMeta) createTableString(dialect Dialect) (string, error) {
 	if !t.done {
 		return "", errors.New("Table must be done")
+	}
+	if dialect == nil {
+		return "", errors.New("Dialect is nil")
 	}
 	return dialect.CreateTableString(t), nil
 }

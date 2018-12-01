@@ -17,7 +17,7 @@ import (
 // }
 
 func TestNewPreparedStatement(t *testing.T) {
-	table, err := newDefaultTestTable()
+	table, err := newDefaultTestTable(false)
 	if err != nil {
 		t.Error(err)
 	}
@@ -73,12 +73,12 @@ func TestAddOneToManyRecordToMainRecordByRelationStringName_BadName(t *testing.T
 }
 
 func TestTableCreate(t *testing.T) {
-	table, err := newDefaultTestTable()
+	table, err := newDefaultTestTable(false)
 	if err != nil {
 		t.Error(err)
 	}
 
-	cr, err := table.CreateTableString(new(DialectSqlite3))
+	cr, err := table.createTableString(new(DialectSqlite3))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -87,7 +87,7 @@ func TestTableCreate(t *testing.T) {
 }
 
 func TestCreateTableSyntax(t *testing.T) {
-	table, err := newDefaultTestTable()
+	table, err := newDefaultTestTable(false)
 	if err != nil {
 		t.Error(err)
 	}
@@ -97,7 +97,7 @@ func TestCreateTableSyntax(t *testing.T) {
 	}
 	defer db.Close()
 
-	create, err := table.CreateTableString(new(DialectSqlite3))
+	create, err := table.createTableString(new(DialectSqlite3))
 	_, err = db.Exec(create)
 
 	if err != nil {
@@ -107,7 +107,7 @@ func TestCreateTableSyntax(t *testing.T) {
 }
 
 func TestCreateTableSyntaxFail(t *testing.T) {
-	table, err := newDefaultTestTable()
+	table, err := newDefaultTestTable(false)
 	if err != nil {
 		t.Error(err)
 	}
@@ -117,7 +117,7 @@ func TestCreateTableSyntaxFail(t *testing.T) {
 	}
 	defer db.Close()
 
-	create, err := table.CreateTableString(new(DialectSqlite3))
+	create, err := table.createTableString(new(DialectSqlite3))
 	_, err = db.Exec("ZZ " + create)
 
 	if err == nil {
@@ -127,7 +127,7 @@ func TestCreateTableSyntaxFail(t *testing.T) {
 }
 
 func TestWriteRecordsFromTableMeta(t *testing.T) {
-	table, err := newDefaultTestTable()
+	table, err := newDefaultTestTable(false)
 	if err != nil {
 		t.Error(err)
 	}
@@ -166,7 +166,7 @@ func TestWriteRecordsFromTableMeta(t *testing.T) {
 	}
 	defer db.Close()
 
-	tableCreateSql, err := table.CreateTableString(new(DialectSqlite3))
+	tableCreateSql, err := table.createTableString(new(DialectSqlite3))
 	t.Log("+++ Create table SQL: " + tableCreateSql)
 	_, err = db.Exec(tableCreateSql)
 
@@ -203,7 +203,7 @@ func TestWriteRecordsFromTableMeta(t *testing.T) {
 }
 
 func TestRecordFromTableMetaTODO(t *testing.T) {
-	table, err := newDefaultTestTable()
+	table, err := newDefaultTestTable(false)
 	if err != nil {
 		t.Error(err)
 	}
@@ -218,8 +218,6 @@ func TestRecordFromTableMetaTODO(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	log.Printf("\nRecord: %v", *record)
-	log.Printf("\nValues: %v", record.values[0])
 }
 
 // This function -- TestValidateSqlite3 -- is a modified https://github.com/mattn/go-sqlite3/blob/master/_example/simple/simple.go

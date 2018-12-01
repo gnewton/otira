@@ -8,11 +8,12 @@ import (
 )
 
 type Record struct {
-	values          []interface{}
-	valueIsSet      []bool
-	tableMeta       *TableMeta
-	fields          []FieldMeta
-	fieldsMap       map[string]int
+	values     []interface{}
+	valueIsSet []bool
+	tableMeta  *TableMeta
+	fields     []FieldMeta
+	fieldsMap  map[string]int
+	//fieldsMap       map[string]FieldMeta
 	validating      bool
 	tx              *sql.Tx
 	stmt            *sql.Stmt
@@ -76,6 +77,7 @@ func newRecord(tm *TableMeta, fields []FieldMeta, stmt *sql.Stmt) (*Record, erro
 		tm.NewRecordSomeFields(fields...)
 	}
 
+	//rec.fieldsMap = make(map[string]int, len(rec.fields))
 	rec.fieldsMap = make(map[string]int, len(rec.fields))
 	for i := 0; i < len(fields); i++ {
 		rec.fieldsMap[fields[i].Name()] = i
@@ -134,6 +136,11 @@ func (r *Record) SetByName(f string, v interface{}) error {
 	if !ok {
 		return errors.New("Field with name " + f + " does not exist")
 	}
+
+	if !supportedType(v) {
+		return errors.New("Added value type for field [" + f + "] is not supported")
+	}
+
 	return r.Set(i, v)
 }
 
@@ -165,6 +172,16 @@ func (r *Record) insert() error {
 	}
 	_, err := r.stmt.Exec(r.Values()...)
 	return err
+}
+
+func (r *Record) String() string {
+	var s string
+
+	s += "TableName:" + r.tableMeta.GetName()
+	for i := 0; i < len(r.fields); i++ {
+		s += "\n " + r.fields[i].Name() + ":" + toString(r.values[i])
+	}
+	return s
 }
 
 //func (r *Record) SetPrimaryKey() error {

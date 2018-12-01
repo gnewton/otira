@@ -1,22 +1,15 @@
 package otira
 
 import (
-	"context"
 	"database/sql"
 	"errors"
 	"log"
-	"strconv"
-	"sync"
 )
 
 type Persister struct {
-	wg                 *sync.WaitGroup
-	ctx                context.Context
-	cancelFunc         context.CancelFunc
 	dialect            Dialect
 	db                 *sql.DB
 	tx                 *sql.Tx
-	incoming           chan []*Record
 	preparedStatements map[string]*sql.Stmt
 	preparedStrings    map[string]string
 
@@ -25,8 +18,10 @@ type Persister struct {
 
 // needs to also have
 //func NewPersister(ctx context.Context, db *sql.DB, dialect Dialect, size int) (*Persister, error) {
-func NewPersister(db *sql.DB, dialect Dialect, size int) (*Persister, error) {
+func NewPersister(db *sql.DB, dialect Dialect) (*Persister, error) {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
+	var err error
+	//log.SetFlags(log.LstdFlags | log.Lshortfile)
 	if db == nil {
 		return nil, errors.New("DB cannot be nil")
 	}
@@ -35,55 +30,82 @@ func NewPersister(db *sql.DB, dialect Dialect, size int) (*Persister, error) {
 		return nil, errors.New("Dialect cannot be nil")
 	}
 
-	if size < 0 {
-		return nil, errors.New("Size must be > 0")
-	}
-
 	pers := new(Persister)
-	pers.wg = &sync.WaitGroup{}
 
-	ctx, cancel := context.WithCancel(context.Background())
-	pers.ctx = ctx
-	pers.cancelFunc = cancel
 	//pers.ctx = ctx
 	pers.db = db
+	err = pers.beginTx()
+	if err != nil {
+		return nil, err
+	}
 	pers.dialect = dialect
-	pers.incoming = make(chan []*Record, size)
 
 	pers.preparedStatements = make(map[string]*sql.Stmt, 0)
 	pers.preparedStrings = make(map[string]string, 0)
 	pers.relationPKCacheMap = make(map[Relation]map[string]int64)
 
-	pers.wg.Add(1)
-	go pers.start()
-
 	return pers, nil
 }
 
-// Saves record and associated relations records
-func (pers *Persister) Save(record *Record) error {
-	if record == nil {
-		return errors.New("Record cannot be nil")
+func (pers *Persister) CreateTable(tm *TableMeta) error {
+	if pers.db == nil {
+		return errors.New("db cannot be nil")
+	}
+	if pers.tx == nil {
+		return errors.New("Tx cannot be nil")
+	}
+	if tm == nil {
+		return errors.New("TableMeta cannot be nil")
 	}
 
-	records, err := pers.prepareRelationRecords(record)
+	if pers.dialect == nil {
+		return errors.New("Dialect cannot be nil")
+	}
+	createTableString, err := tm.createTableString(pers.dialect)
 	if err != nil {
 		return err
 	}
 
-	records = append(records, record)
+	log.Println("createTableString=" + createTableString)
+	// Create the table in the db
+	_, err = pers.tx.Exec(createTableString)
 
-	pers.incoming <- records
+	err = pers.Commit()
+	if err != nil {
+		return err
+	}
+	err = pers.BeginTx()
+	return err
 
-	return nil
+}
+
+func (pers *Persister) beginTx() error {
+	var err error
+	pers.tx, err = pers.db.Begin()
+	return err
+}
+
+func (pers *Persister) commit() error {
+	var err error
+	err = pers.tx.Commit()
+	return err
+
+}
+
+func (pers *Persister) BeginTx() error {
+	var err error
+	pers.tx, err = pers.db.Begin()
+	return err
+}
+
+func (pers *Persister) Commit() error {
+	return pers.tx.Commit()
 }
 
 func (pers *Persister) Done() error {
 	// commit last transation
 	// close db
-	close(pers.incoming)
-	pers.wg.Wait()
-	return nil
+	return pers.Commit()
 }
 
 func (pers *Persister) prepareRelationRecords(record *Record) ([]*Record, error) {
@@ -125,12 +147,18 @@ func (pers *Persister) prepareManyToManyRecord(record *Record, relationRecord *R
 func (pers *Persister) preparedString(record *Record) (string, error) {
 	var ok bool
 	var preparedString string
+	var err error
 	if preparedString, ok = pers.preparedStrings[record.tableMeta.name]; !ok {
-		preparedString, err := record.tableMeta.CreatePreparedStatementInsertAllFields(pers.dialect)
+		preparedString, err = record.tableMeta.CreatePreparedStatementInsertAllFields(pers.dialect)
+		//log.Println("Prepared String=" + preparedString)
 		if err != nil {
+			log.Println("error=")
+			log.Println(err)
 			return "", err
 		}
 		pers.preparedStrings[record.tableMeta.name] = preparedString
+	} else {
+		log.Println("cached")
 	}
 	return preparedString, nil
 }
@@ -141,9 +169,14 @@ func (pers *Persister) preparedStatement(record *Record) (*sql.Stmt, error) {
 	if stmt, ok = pers.preparedStatements[record.tableMeta.name]; !ok {
 		//preparedString, err := record.tableMeta.CreatePreparedStatementInsertAllFields(pers.dialect)
 		preparedString, err := pers.preparedString(record)
+		log.Println("nn ++++++++++++  preparedString=[" + preparedString + "]")
 		if err != nil {
 			return nil, err
 		}
+		if pers.tx == nil {
+			log.Println("*******************8  pers.tx is nil")
+		}
+		log.Println("++++++++++++  preparedString=[" + preparedString + "]")
 		stmt, err = pers.tx.Prepare(preparedString)
 		if err != nil {
 			return nil, err
@@ -154,8 +187,11 @@ func (pers *Persister) preparedStatement(record *Record) (*sql.Stmt, error) {
 	return stmt, nil
 }
 
+// Saves single record
 func (pers *Persister) save(record *Record) error {
 	stmt, err := pers.preparedStatement(record)
+	log.Println("SAVE()")
+	log.Println(record.Values())
 	if err != nil {
 		return err
 	}
@@ -196,46 +232,4 @@ func (pers *Persister) CreatePreparedStatementInsertSomeFields(tablename string,
 
 	st = st + " VALUES " + values
 	return st, nil
-}
-
-func (pers *Persister) start() {
-	defer pers.wg.Done()
-	n := 0
-
-	for records := range pers.incoming {
-		select {
-		case <-pers.ctx.Done():
-			log.Println("Cancel closing!!!!!!!!!!!")
-			return // avoid leaking of this goroutine when ctx is done.
-		default:
-		}
-
-		for i := 0; i < len(records); i++ {
-			record := records[i]
-			n++
-			if record != nil {
-				tableName := record.tableMeta.name
-				// if preparedStatement, ok := pers.preparedStatements[tableName]; !ok {
-				// 	if preparedString, ok2 := pers.preparedStrings[tableName]; !ok {
-				// 		preparedString, _ = record.tableMeta.CreatePreparedStatementInsertFromRecord(pers.dialect, record)
-				// 		pers.preparedStrings[tableName] = preparedString
-
-				// 	}
-				// 	preparedStatement, err = record.tx.Prepare(r.preparedString)
-				// }
-				log.Println(strconv.Itoa(n) + " FOO " + tableName)
-			} else {
-				log.Println(strconv.Itoa(n) + " A--nil--")
-			}
-			//pers.Save(record)
-
-		}
-	}
-	// var err error
-	// pers.tx, err = pers.db.Begin()
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-
-	// A nil record means a record and all its associated relation record were just sent
 }

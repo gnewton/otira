@@ -2,6 +2,7 @@ package otira
 
 import (
 	"errors"
+	"log"
 	"strconv"
 )
 
@@ -34,12 +35,57 @@ func findRelationPK(record *Record, rel *OneToMany) (string, error) {
 	return k, nil
 }
 
+func supportedType(t interface{}) bool {
+	switch t.(type) {
+	case string, int, int8, int16, int32, int64, float32, float64, []byte, bool:
+		return true
+	}
+	return false
+
+}
+
+const STRING_ERROR = " -ERROR- "
+
 func toString(t interface{}) string {
+	log.Println(t)
+	if t == nil {
+		return " --nil-- "
+	}
+
 	switch v := t.(type) {
 	case string:
 		return v
 	case int:
 		return strconv.Itoa(v)
+	case int64:
+		return strconv.FormatInt(int64(v), 10)
+
+	case int32:
+		return strconv.FormatInt(int64(v), 10)
+	case int16:
+		return strconv.FormatInt(int64(v), 10)
+	case int8:
+		return strconv.FormatInt(int64(v), 10)
+
+	case uint:
+		return strconv.FormatUint(uint64(v), 10)
+	case uint64:
+		return strconv.FormatUint(v, 10)
+	case uint32:
+		return strconv.FormatUint(uint64(v), 10)
+	case uint16:
+		return strconv.FormatUint(uint64(v), 10)
+	case uint8:
+		return strconv.FormatUint(uint64(v), 10)
+
+	case float32:
+		return strconv.FormatFloat(float64(v), 'f', -1, 32)
+	case float64:
+		return strconv.FormatFloat(v, 'f', -1, 64)
+
+	case bool:
+		return strconv.FormatBool(v)
+
 	}
-	return "ERROR"
+	return STRING_ERROR
 }

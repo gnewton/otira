@@ -110,46 +110,62 @@ type FieldMetaInt struct {
 }
 
 func (fm *FieldMetaInt) IsSameType(v interface{}) bool {
+
 	_, ok := v.(int)
-	if !ok {
-		_, ok = v.(int8)
-		if !ok {
-			_, ok = v.(int16)
-
-			if !ok {
-				_, ok = v.(int32)
-
-				if !ok {
-					_, ok = v.(int64)
-
-					if !ok {
-						_, ok = v.(uint)
-
-						if !ok {
-							_, ok = v.(uint8)
-
-							if !ok {
-								_, ok = v.(uint16)
-
-								if !ok {
-									_, ok = v.(uint32)
-
-									if !ok {
-										_, ok = v.(uint64)
-
-										if !ok {
-											_, ok = v.(uintptr)
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		}
+	if ok {
+		return true
 	}
-	return ok
+
+	_, ok = v.(int32)
+	if ok {
+		return true
+	}
+
+	_, ok = v.(int64)
+	if ok {
+		return true
+	}
+
+	_, ok = v.(int8)
+	if ok {
+		return true
+	}
+
+	_, ok = v.(int16)
+	if ok {
+		return true
+	}
+
+	_, ok = v.(uint)
+	if ok {
+		return true
+	}
+
+	_, ok = v.(uint8)
+	if ok {
+		return true
+	}
+
+	_, ok = v.(uint16)
+	if ok {
+		return true
+	}
+
+	_, ok = v.(uint32)
+	if ok {
+		return true
+	}
+
+	_, ok = v.(uint64)
+	if ok {
+		return true
+	}
+
+	_, ok = v.(uintptr)
+	if ok {
+		return true
+	}
+	return false
 }
 
 type FieldMetaByte struct {

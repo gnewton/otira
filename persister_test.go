@@ -6,95 +6,70 @@ import (
 	"testing"
 )
 
-func TestPersistSimple(t *testing.T) {
-	t.Log("hello")
+func TestPersistInstantiate(t *testing.T) {
 	db, err := sql.Open("sqlite3", ":memory:")
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer db.Close()
 
-	pers, err := NewPersister(db, new(DialectSqlite3), 10)
+	pers, err := NewPersister(db, new(DialectSqlite3))
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	t.Log("hello")
 	pers.Done()
-	t.Log("fpp hello")
 
 }
 
 func TestPersistFewRecords(t *testing.T) {
 	db, err := sql.Open("sqlite3", ":memory:")
+	//db, err := sql.Open("sqlite3", "/tmp/mmmmmm9")
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer db.Close()
-	pers, err := NewPersister(db, new(DialectSqlite3), 10)
+	pers, err := NewPersister(db, new(DialectSqlite3))
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer pers.Done()
 
-	table, err := newDefaultTestTable()
+	table, err := newDefaultTestTable(false)
 	if err != nil {
 		t.Error(err)
 	}
 
 	table.SetDone()
 
-	for i := 0; i < 100; i++ {
-		tableRecord, err := table.NewRecord()
-		if err != nil {
-			t.Fatal(err)
-		}
-		t.Log("TestPersistFewRecords")
-		t.Log(*tableRecord)
-
-		err = pers.Save(tableRecord)
-		if err != nil {
-			t.Fatal(err)
-		}
-	}
-
-}
-
-func TestPersistFewRecordsWithCancel(t *testing.T) {
-	db, err := sql.Open("sqlite3", ":memory:")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer db.Close()
-	pers, err := NewPersister(db, new(DialectSqlite3), 10)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	table, err := newDefaultTestTable()
+	err = pers.CreateTable(table)
 	if err != nil {
 		t.Error(err)
 	}
-	table.name = "foobar"
+
+	// create table in db
+
 	for i := 0; i < 100; i++ {
-		tableRecord, err := table.NewRecord()
+		//t.Log(i)
+		rec, err := table.NewRecord()
 		if err != nil {
 			t.Fatal(err)
 		}
-		t.Log("TestPersistFewRecordsWithCancel")
-		t.Log(*tableRecord)
-		pers.Save(tableRecord)
-		if i == 5 {
-			pers.cancelFunc()
-			break
+		populateDefaultTableRecord(rec)
+		err = rec.SetByName(pk, 1000000+i)
+		if err != nil {
+			t.Fatal(err)
+		}
+		err = pers.save(rec)
+		if err != nil {
+			t.Fatal(err)
 		}
 	}
-	pers.Done()
+
 }
 
 ///// FAILS /////
 func TestPersistNoDbFail(t *testing.T) {
-	_, err := NewPersister(nil, new(DialectSqlite3), 10)
+	_, err := NewPersister(nil, new(DialectSqlite3))
 	if err == nil {
 		t.Fatal(err)
 	}
@@ -107,21 +82,21 @@ func TestNoDialectFail(t *testing.T) {
 	}
 	defer db.Close()
 
-	_, err = NewPersister(db, nil, 10)
+	_, err = NewPersister(db, nil)
 	if err == nil {
 		t.Fatal(err)
 	}
 }
 
-func TestPersistBadNumFail(t *testing.T) {
-	db, err := sql.Open("sqlite3", ":memory:")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer db.Close()
+// func TestPersistBadNumFail(t *testing.T) {
+// 	db, err := sql.Open("sqlite3", ":memory:")
+// 	if err != nil {
+// 		t.Fatal(err)
+// 	}
+// 	defer db.Close()
 
-	_, err = NewPersister(db, new(DialectSqlite3), -1)
-	if err == nil {
-		t.Fatal(err)
-	}
-}
+// 	_, err = NewPersister(db, new(DialectSqlite3))
+// 	if err == nil {
+// 		t.Fatal(err)
+// 	}
+// }
