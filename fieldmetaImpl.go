@@ -67,13 +67,6 @@ func (b *FieldMetaImpl) SetFixed(v bool) {
 	b.fixed = v
 }
 
-func (b *FieldMetaImpl) PrimaryKey() bool {
-	return b.primaryKey
-}
-
-func (b *FieldMetaImpl) SetPrimaryKey(v bool) {
-	b.primaryKey = v
-}
 func (b *FieldMetaImpl) String() string {
 	//return "Name:" + b.name + " PrimaryKey:" + b.primaryKey
 	return fmt.Sprintf("Name: [%s]  PrimaryKey: %t  Unique: %t  Indexed: %t  Nullable: %t", b.name, b.primaryKey, b.unique, b.indexed, b.nullable)

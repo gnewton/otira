@@ -40,4 +40,6 @@ type Dialect interface {
 	PreparedValueFormat(counter int) string
 	FieldType(FieldMeta) string
 	Constraints(FieldMeta) string
+	ForeignKeys(t *TableMeta) string
+	InitPragmas() []string
 }

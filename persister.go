@@ -31,20 +31,26 @@ func NewPersister(db *sql.DB, dialect Dialect) (*Persister, error) {
 	}
 
 	pers := new(Persister)
+	pers.db = db
+	pers.dialect = dialect
+	pers.initPragmas()
 
 	//pers.ctx = ctx
-	pers.db = db
+
 	err = pers.beginTx()
 	if err != nil {
 		return nil, err
 	}
-	pers.dialect = dialect
 
 	pers.preparedStatements = make(map[string]*sql.Stmt, 0)
 	pers.preparedStrings = make(map[string]string, 0)
 	pers.relationPKCacheMap = make(map[Relation]map[string]int64)
 
 	return pers, nil
+}
+
+func (pers *Persister) initPragmas() error {
+	return nil
 }
 
 func (pers *Persister) CreateTable(tm *TableMeta) error {
@@ -195,7 +201,17 @@ func (pers *Persister) save(record *Record) error {
 	if err != nil {
 		return err
 	}
-	_, err = stmt.Exec(record.Values()...)
+	result, err := stmt.Exec(record.Values()...)
+	lastInsertId, err := result.LastInsertId()
+	if err != nil {
+		return err
+	}
+	log.Println(lastInsertId)
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	log.Println(rowsAffected)
 	return err
 }
 

@@ -24,3 +24,14 @@ func (d *DialectPostgresql) FieldType(FieldMeta) string {
 func (d *DialectPostgresql) Constraints(fm FieldMeta) string {
 	return "TODO"
 }
+
+func (d *DialectPostgresql) ForeignKeys(t *TableMeta) string {
+	return "TODO"
+}
+
+//TODO
+func (d *DialectPostgresql) InitPragmas() []string {
+	var pragmas []string
+
+	return pragmas
+}

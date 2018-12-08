@@ -28,8 +28,19 @@ func NewTableMeta(name string) (*TableMeta, error) {
 	return t, nil
 }
 
+func (t *TableMeta) AddOneTomany(one2m *OneToMany) {
+	if t.oneToMany == nil {
+		t.oneToMany = make([]*OneToMany, 0)
+	}
+	t.oneToMany = append(t.oneToMany, one2m)
+}
+
 func (t *TableMeta) SetPrimaryKey(pk FieldMeta) {
 	t.primaryKey = pk
+}
+
+func (t *TableMeta) PrimaryKey() FieldMeta {
+	return t.primaryKey
 }
 
 func (t *TableMeta) SetDiscrimFields(fields ...FieldMeta) {

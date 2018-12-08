@@ -65,7 +65,6 @@ func TestCreatePreparedStatementInsert(t *testing.T) {
 
 	pk := new(FieldMetaInt)
 	pk.SetName("id")
-	pk.SetPrimaryKey(true)
 	table.SetPrimaryKey(pk)
 	t.Log(pk.String())
 	err = table.Add(pk)

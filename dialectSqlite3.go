@@ -17,8 +17,29 @@ func (d *DialectSqlite3) CreateTableString(t *TableMeta) string {
 		}
 		s += fm.Name() + " " + d.FieldType(fm) + d.Constraints(fm)
 	}
-
+	s += d.ForeignKeys(t)
 	s += ")"
+	return s
+}
+
+func (d *DialectSqlite3) ForeignKeys(t *TableMeta) string {
+	var s string
+	s += d.oneToManyForeignKeys(t)
+
+	return s
+}
+
+func (d *DialectSqlite3) oneToManyForeignKeys(t *TableMeta) string {
+	var s string
+	if t.oneToMany == nil {
+		return ""
+	}
+	log.Println(t.GetName())
+	for i := 0; i < len(t.oneToMany); i++ {
+		one2m := t.oneToMany[i]
+		log.Println(one2m)
+		s += ", " + "FOREIGN KEY(" + one2m.leftKeyField.Name() + ") REFERENCES " + one2m.rightTable.GetName() + "(" + one2m.rightKeyField.Name() + ")"
+	}
 	return s
 }
 
@@ -55,4 +76,13 @@ func (d *DialectSqlite3) FieldType(fm FieldMeta) string {
 
 func (d *DialectSqlite3) PreparedValueFormat(counter int) string {
 	return "?"
+}
+
+func (d *DialectSqlite3) InitPragmas() []string {
+	var pragmas []string
+
+	pragmas = append(pragmas, "PRAGMA foreign_keys = ON;")
+	pragmas = append(pragmas, "PRAGMA schema.cache_size =-20000;")
+
+	return pragmas
 }

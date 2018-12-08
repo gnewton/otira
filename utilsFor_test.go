@@ -14,7 +14,6 @@ func newDefaultTestTable(singleDiscrimField bool) (*TableMeta, error) {
 
 	f0 := new(FieldMetaInt)
 	f0.SetName(pk)
-	f0.SetPrimaryKey(true)
 	f0.SetUnique(true)
 	table.Add(f0)
 	table.SetPrimaryKey(f0)
@@ -52,8 +51,6 @@ func newDefaultTestTable(singleDiscrimField bool) (*TableMeta, error) {
 	table.SetDone()
 	return table, nil
 }
-
-var a = 20
 
 func populateDefaultTableRecord(rec *Record) error {
 	err := rec.SetByName(tAddress, "street test")
