@@ -30,7 +30,7 @@ func (d *DialectPostgresql) ForeignKeys(t *TableMeta) string {
 }
 
 //TODO
-func (d *DialectPostgresql) InitPragmas() []string {
+func (d *DialectPostgresql) Pragmas() []string {
 	var pragmas []string
 
 	return pragmas

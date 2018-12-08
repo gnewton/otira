@@ -4,7 +4,7 @@ import (
 	"errors"
 )
 
-const ADDRESS = "ADDRESS"
+const ADDRESS = "address"
 
 func newDefaultTestTable(singleDiscrimField bool) (*TableMeta, error) {
 	table, err := NewTableMeta(tablename)

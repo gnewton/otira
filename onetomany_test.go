@@ -111,7 +111,10 @@ func TestVerifySimpleOneToManyInsert_FailMissingCity(t *testing.T) {
 	}
 	addressRec1, err := makeAddressRecord1(address)
 	err = pers.save(addressRec1)
-	if err != nil {
+	// Should fail due to foreign key constraints
+	if err == nil {
 		t.Error(err)
+	} else {
+		t.Log(err)
 	}
 }

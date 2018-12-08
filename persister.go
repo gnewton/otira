@@ -50,6 +50,13 @@ func NewPersister(db *sql.DB, dialect Dialect) (*Persister, error) {
 }
 
 func (pers *Persister) initPragmas() error {
+	pragmas := pers.dialect.Pragmas()
+	for i := 0; i < len(pragmas); i++ {
+		_, err := pers.db.Exec(pragmas[i])
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -175,14 +182,14 @@ func (pers *Persister) preparedStatement(record *Record) (*sql.Stmt, error) {
 	if stmt, ok = pers.preparedStatements[record.tableMeta.name]; !ok {
 		//preparedString, err := record.tableMeta.CreatePreparedStatementInsertAllFields(pers.dialect)
 		preparedString, err := pers.preparedString(record)
-		log.Println("nn ++++++++++++  preparedString=[" + preparedString + "]")
 		if err != nil {
 			return nil, err
 		}
 		if pers.tx == nil {
-			log.Println("*******************8  pers.tx is nil")
+			log.Println("*******************  pers.tx is nil")
+			return nil, errors.New("pers.tx is nil")
 		}
-		log.Println("++++++++++++  preparedString=[" + preparedString + "]")
+		log.Println("preparedString=[" + preparedString + "]")
 		stmt, err = pers.tx.Prepare(preparedString)
 		if err != nil {
 			return nil, err
@@ -197,11 +204,15 @@ func (pers *Persister) preparedStatement(record *Record) (*sql.Stmt, error) {
 func (pers *Persister) save(record *Record) error {
 	stmt, err := pers.preparedStatement(record)
 	log.Println("SAVE()")
-	log.Println(record.Values())
+	//log.Println(record.Values())
+	log.Println(record.String())
 	if err != nil {
 		return err
 	}
 	result, err := stmt.Exec(record.Values()...)
+	if err != nil {
+		return err
+	}
 	lastInsertId, err := result.LastInsertId()
 	if err != nil {
 		return err

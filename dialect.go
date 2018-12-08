@@ -41,5 +41,5 @@ type Dialect interface {
 	FieldType(FieldMeta) string
 	Constraints(FieldMeta) string
 	ForeignKeys(t *TableMeta) string
-	InitPragmas() []string
+	Pragmas() []string
 }

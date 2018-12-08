@@ -16,6 +16,9 @@ func (d *DialectSqlite3) CreateTableString(t *TableMeta) string {
 			s += ", "
 		}
 		s += fm.Name() + " " + d.FieldType(fm) + d.Constraints(fm)
+		if fm == t.primaryKey {
+			s += " PRIMARY KEY"
+		}
 	}
 	s += d.ForeignKeys(t)
 	s += ")"
@@ -78,7 +81,7 @@ func (d *DialectSqlite3) PreparedValueFormat(counter int) string {
 	return "?"
 }
 
-func (d *DialectSqlite3) InitPragmas() []string {
+func (d *DialectSqlite3) Pragmas() []string {
 	var pragmas []string
 
 	pragmas = append(pragmas, "PRAGMA foreign_keys = ON;")
