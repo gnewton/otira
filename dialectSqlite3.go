@@ -5,20 +5,43 @@ import (
 	"strconv"
 )
 
+var sqlite3DefaultPragmas = []string{
+	"PRAGMA foreign_keys = ON;",
+	"PRAGMA schema.cache_size =-20000;",
+}
+
 type DialectSqlite3 struct {
+	pragmas []string
+}
+
+func NewDialectSqlite3(pragmas []string, overwriteDefaultPragmas bool) Dialect {
+	dialect := new(DialectSqlite3)
+	if pragmas != nil {
+		if overwriteDefaultPragmas {
+			dialect.pragmas = pragmas
+		} else {
+			dialect.pragmas = append(pragmas, sqlite3DefaultPragmas...)
+		}
+	}
+	return new(DialectSqlite3)
+}
+
+func (d *DialectSqlite3) DropTableIfExists(tm *TableMeta) string {
+	return "DROP TABLE IF EXISTS " + tm.name
 }
 
 func (d *DialectSqlite3) CreateTableString(t *TableMeta) string {
-	s := "CREATE TABLE " + t.name + " ("
+	s := CREATE_TABLE + SPC + t.name + " ("
 
 	for i, fm := range t.Fields() {
 		if i != 0 {
 			s += ", "
 		}
-		s += fm.Name() + " " + d.FieldType(fm) + d.Constraints(fm)
+		s += fm.Name() + " " + d.FieldType(fm)
 		if fm == t.primaryKey {
-			s += " PRIMARY KEY"
+			s += SPC + PRIMARY_KEY
 		}
+		s += d.Constraints(fm)
 	}
 	s += d.ForeignKeys(t)
 	s += ")"
@@ -50,6 +73,9 @@ func (d *DialectSqlite3) Constraints(fm FieldMeta) string {
 	//if fm.PrimaryKey() {
 	//return " PRIMARY KEY"
 	//}
+	if fm.Unique() {
+		return " UNIQUE"
+	}
 	return ""
 }
 
@@ -82,10 +108,5 @@ func (d *DialectSqlite3) PreparedValueFormat(counter int) string {
 }
 
 func (d *DialectSqlite3) Pragmas() []string {
-	var pragmas []string
-
-	pragmas = append(pragmas, "PRAGMA foreign_keys = ON;")
-	pragmas = append(pragmas, "PRAGMA schema.cache_size =-20000;")
-
-	return pragmas
+	return sqlite3DefaultPragmas
 }

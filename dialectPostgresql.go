@@ -35,3 +35,8 @@ func (d *DialectPostgresql) Pragmas() []string {
 
 	return pragmas
 }
+
+//TODO
+func (d *DialectPostgresql) DropTableIfExists(tm *TableMeta) string {
+	return "TODO"
+}

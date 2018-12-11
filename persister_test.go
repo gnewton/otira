@@ -17,6 +17,10 @@ func TestPersistInstantiate(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	err = pers.BeginTx()
+	if err != nil {
+		t.Fatal(err)
+	}
 	pers.Done()
 
 }
@@ -46,6 +50,10 @@ func TestPersistFewRecords(t *testing.T) {
 		t.Error(err)
 	}
 
+	err = pers.BeginTx()
+	if err != nil {
+		t.Fatal(err)
+	}
 	// create table in db
 
 	for i := 0; i < 100; i++ {

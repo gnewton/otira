@@ -4,6 +4,9 @@ import (
 //"strconv"
 )
 
+const CREATE_TABLE = "CREATE TABLE"
+const SPC = " "
+const PRIMARY_KEY = "PRIMARY_KEY"
 const INSERT = "INSERT INTO "
 const VALUES = "VALUES"
 
@@ -42,4 +45,5 @@ type Dialect interface {
 	Constraints(FieldMeta) string
 	ForeignKeys(t *TableMeta) string
 	Pragmas() []string
+	DropTableIfExists(*TableMeta) string
 }

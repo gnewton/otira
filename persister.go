@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"log"
+	"sync"
 )
 
 type Persister struct {
@@ -14,6 +15,8 @@ type Persister struct {
 	preparedStrings    map[string]string
 
 	relationPKCacheMap map[Relation]map[string]int64
+
+	saveMutex sync.Mutex
 }
 
 // needs to also have
@@ -33,15 +36,14 @@ func NewPersister(db *sql.DB, dialect Dialect) (*Persister, error) {
 	pers := new(Persister)
 	pers.db = db
 	pers.dialect = dialect
-	pers.initPragmas()
 
-	//pers.ctx = ctx
-
-	err = pers.beginTx()
 	if err != nil {
 		return nil, err
 	}
 
+	pers.initPragmas()
+
+	//err = pers.beginTx()
 	pers.preparedStatements = make(map[string]*sql.Stmt, 0)
 	pers.preparedStrings = make(map[string]string, 0)
 	pers.relationPKCacheMap = make(map[Relation]map[string]int64)
@@ -50,9 +52,13 @@ func NewPersister(db *sql.DB, dialect Dialect) (*Persister, error) {
 }
 
 func (pers *Persister) initPragmas() error {
+	if pers.db == nil {
+		return errors.New("db is nil")
+	}
 	pragmas := pers.dialect.Pragmas()
 	for i := 0; i < len(pragmas); i++ {
-		_, err := pers.db.Exec(pragmas[i])
+		_, err := exec(pers.db, pragmas[i])
+		log.Println("PRAGMAS: " + pragmas[i])
 		if err != nil {
 			return err
 		}
@@ -63,9 +69,6 @@ func (pers *Persister) initPragmas() error {
 func (pers *Persister) CreateTable(tm *TableMeta) error {
 	if pers.db == nil {
 		return errors.New("db cannot be nil")
-	}
-	if pers.tx == nil {
-		return errors.New("Tx cannot be nil")
 	}
 	if tm == nil {
 		return errors.New("TableMeta cannot be nil")
@@ -79,46 +82,52 @@ func (pers *Persister) CreateTable(tm *TableMeta) error {
 		return err
 	}
 
-	log.Println("createTableString=" + createTableString)
-	// Create the table in the db
-	_, err = pers.tx.Exec(createTableString)
-
-	err = pers.Commit()
+	// Delete table
+	sql := pers.dialect.DropTableIfExists(tm)
+	log.Println(sql)
+	_, err = exec(pers.db, sql)
 	if err != nil {
 		return err
 	}
-	err = pers.BeginTx()
+	log.Println("createTableString=" + createTableString)
+	// Create the table in the db
+	_, err = exec(pers.db, createTableString)
+	if err != nil {
+		return err
+	}
 	return err
 
 }
 
-func (pers *Persister) beginTx() error {
+func exec(db *sql.DB, sql string) (sql.Result, error) {
+	return db.Exec(sql)
+}
+
+func execStatement(stmt *sql.Stmt, values []interface{}, mux *sync.Mutex) (sql.Result, error) {
+	mux.Lock()
+	defer mux.Unlock()
+	return stmt.Exec(values...)
+}
+
+func (pers *Persister) BeginTx() error {
+	if pers.tx != nil {
+		return nil
+	}
+	log.Println("=============================START TX")
 	var err error
 	pers.tx, err = pers.db.Begin()
 	return err
 }
 
 func (pers *Persister) commit() error {
-	var err error
-	err = pers.tx.Commit()
-	return err
-
-}
-
-func (pers *Persister) BeginTx() error {
-	var err error
-	pers.tx, err = pers.db.Begin()
-	return err
-}
-
-func (pers *Persister) Commit() error {
+	log.Println("=============================END TX")
 	return pers.tx.Commit()
 }
 
 func (pers *Persister) Done() error {
 	// commit last transation
 	// close db
-	return pers.Commit()
+	return pers.commit()
 }
 
 func (pers *Persister) prepareRelationRecords(record *Record) ([]*Record, error) {
@@ -202,6 +211,7 @@ func (pers *Persister) preparedStatement(record *Record) (*sql.Stmt, error) {
 
 // Saves single record
 func (pers *Persister) save(record *Record) error {
+
 	stmt, err := pers.preparedStatement(record)
 	log.Println("SAVE()")
 	//log.Println(record.Values())
@@ -209,8 +219,9 @@ func (pers *Persister) save(record *Record) error {
 	if err != nil {
 		return err
 	}
-	result, err := stmt.Exec(record.Values()...)
+	result, err := execStatement(stmt, record.Values(), &pers.saveMutex)
 	if err != nil {
+		log.Println(err)
 		return err
 	}
 	lastInsertId, err := result.LastInsertId()

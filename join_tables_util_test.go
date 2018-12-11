@@ -54,7 +54,6 @@ func makeAddressTable() (*TableMeta, error) {
 
 	cityField := new(FieldMetaInt)
 	cityField.SetName(CITYFK)
-	cityField.SetUnique(true)
 	addressTable.Add(cityField)
 
 	return addressTable, nil

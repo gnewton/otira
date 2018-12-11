@@ -17,10 +17,11 @@ func TestCreateSimpleOneToMany(t *testing.T) {
 
 func simpleOneToMany() (*Persister, *TableMeta, *TableMeta, error) {
 	db, err := sql.Open("sqlite3", ":memory:")
+	//db, err := sql.Open("sqlite3", "smith?_mutex=no&_journal_mode=OFF")
 	if err != nil {
 		return nil, nil, nil, err
 	}
-	pers, err := NewPersister(db, new(DialectSqlite3))
+	pers, err := NewPersister(db, NewDialectSqlite3(nil, false))
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -35,7 +36,7 @@ func simpleOneToMany() (*Persister, *TableMeta, *TableMeta, error) {
 
 func TestVerifySimpleOneToManyCreateWorks(t *testing.T) {
 	pers, address, city, err := simpleOneToMany()
-	defer pers.Done()
+
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -63,7 +64,15 @@ func TestVerifySimpleOneToManyInsert(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
+	err = pers.CreateTable(address)
+	if err != nil {
+		t.Error(err)
+	}
 
+	err = pers.BeginTx()
+	if err != nil {
+		t.Error(err)
+	}
 	cityRec1, err := makeCityRecord1(city)
 	if err != nil {
 		t.Error(err)
@@ -73,10 +82,6 @@ func TestVerifySimpleOneToManyInsert(t *testing.T) {
 		t.Error(err)
 	}
 
-	err = pers.CreateTable(address)
-	if err != nil {
-		t.Error(err)
-	}
 	addressRec1, err := makeAddressRecord1(address)
 	err = pers.save(addressRec1)
 	if err != nil {
@@ -85,9 +90,19 @@ func TestVerifySimpleOneToManyInsert(t *testing.T) {
 }
 
 func TestVerifySimpleOneToManyInsert_FailMissingCity(t *testing.T) {
-	//pers, address, city, err := simpleOneToMany()
-	pers, address, city, err := simpleOneToMany()
-	defer pers.Done()
+	pers, addressTable, city, err := simpleOneToMany()
+	// defer func() {
+	// 	err := pers.Commit()
+	// 	if err != nil {
+	// 		t.Fatal(err)
+	// 	}
+	// 	err = pers.Done()
+	// 	if err != nil {
+	// 		t.Fatal(err)
+	// 	}
+
+	// }()
+
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -96,20 +111,26 @@ func TestVerifySimpleOneToManyInsert_FailMissingCity(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
+	err = pers.CreateTable(addressTable)
+	if err != nil {
+		t.Error(err)
+	}
+
+	err = pers.BeginTx()
+	if err != nil {
+		t.Error(err)
+	}
 	cityRec2, err := makeCityRecord2(city)
 	if err != nil {
 		t.Error(err)
 	}
+
 	err = pers.save(cityRec2)
 	if err != nil {
 		t.Error(err)
 	}
 
-	err = pers.CreateTable(address)
-	if err != nil {
-		t.Error(err)
-	}
-	addressRec1, err := makeAddressRecord1(address)
+	addressRec1, err := makeAddressRecord1(addressTable)
 	err = pers.save(addressRec1)
 	// Should fail due to foreign key constraints
 	if err == nil {
