@@ -2,7 +2,6 @@ package otira
 
 import (
 	"errors"
-	"log"
 	"strconv"
 )
 
@@ -37,7 +36,7 @@ func findRelationPK(record *Record, rel *OneToMany) (string, error) {
 
 func supportedType(t interface{}) bool {
 	switch t.(type) {
-	case string, int, int8, int16, int32, int64, float32, float64, []byte, bool:
+	case string, uint64, uint32, int, int8, int16, int32, int64, float32, float64, []byte, bool:
 		return true
 	}
 	return false
@@ -47,7 +46,6 @@ func supportedType(t interface{}) bool {
 const STRING_ERROR = " -ERROR- "
 
 func toString(t interface{}) string {
-	log.Println(t)
 	if t == nil {
 		return " --nil-- "
 	}

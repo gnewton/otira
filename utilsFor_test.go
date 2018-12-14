@@ -52,6 +52,8 @@ func newDefaultTestTable(singleDiscrimField bool) (*TableMeta, error) {
 	return table, nil
 }
 
+var DefaultPID uint64 = 999999
+
 func populateDefaultTableRecord(rec *Record) error {
 	err := rec.SetByName(tAddress, "street test")
 	if err != nil {
@@ -67,7 +69,8 @@ func populateDefaultTableRecord(rec *Record) error {
 		return err
 	}
 
-	err = rec.SetByName(pk, 999999)
+	err = rec.SetByName(pk, DefaultPID)
+	//err = rec.SetByName(pk, 999999)
 	if err != nil {
 		return err
 	}

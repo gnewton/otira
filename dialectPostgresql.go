@@ -8,9 +8,9 @@ import (
 type DialectPostgresql struct {
 }
 
-func (d *DialectPostgresql) CreateTableString(t *TableMeta) string {
+func (d *DialectPostgresql) CreateTableString(t *TableMeta) (string, error) {
 	log.Println("TODO")
-	return "TODO"
+	return "TODO", nil
 }
 
 func (d *DialectPostgresql) PreparedValueFormat(counter int) string {

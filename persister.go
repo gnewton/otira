@@ -8,6 +8,8 @@ import (
 )
 
 type Persister struct {
+	TransactionSize    int
+	transactionCounter int
 	dialect            Dialect
 	db                 *sql.DB
 	tx                 *sql.Tx
@@ -42,6 +44,7 @@ func NewPersister(db *sql.DB, dialect Dialect) (*Persister, error) {
 	}
 
 	pers.initPragmas()
+	pers.TransactionSize = 500
 
 	//err = pers.beginTx()
 	pers.preparedStatements = make(map[string]*sql.Stmt, 0)
@@ -103,9 +106,7 @@ func exec(db *sql.DB, sql string) (sql.Result, error) {
 	return db.Exec(sql)
 }
 
-func execStatement(stmt *sql.Stmt, values []interface{}, mux *sync.Mutex) (sql.Result, error) {
-	mux.Lock()
-	defer mux.Unlock()
+func execStatement(stmt *sql.Stmt, values []interface{}) (sql.Result, error) {
 	return stmt.Exec(values...)
 }
 
@@ -116,6 +117,7 @@ func (pers *Persister) BeginTx() error {
 	log.Println("=============================START TX")
 	var err error
 	pers.tx, err = pers.db.Begin()
+	pers.transactionCounter = 0
 	return err
 }
 
@@ -209,8 +211,62 @@ func (pers *Persister) preparedStatement(record *Record) (*sql.Stmt, error) {
 	return stmt, nil
 }
 
+// saves record and all related records
+func (pers *Persister) Save(record *Record) error {
+	err := pers.saveRelations(record)
+	if err != nil {
+		return err
+	}
+	err = pers.save(record)
+	return err
+}
+
+func (pers *Persister) saveRelations(record *Record) error {
+	log.Println("saveRelations")
+	err := pers.saveOneToMany(record)
+	//saveManyToMany(record)
+	return err
+
+}
+
+func (pers *Persister) saveOneToMany(record *Record) error {
+	log.Println("saveOneToMany")
+	for i := 0; i < len(record.relationRecords); i++ {
+		relation := record.relationRecords[i].relation
+		relRecord := record.relationRecords[i].record
+		log.Println(relation)
+		if one2m, ok := relation.(*OneToMany); ok {
+			log.Println(i)
+			log.Println("*****************")
+			//relRecordValueIndex, ok := relRecord.fieldsMap[record.tableMeta.PrimaryKey().Name()]
+			relRecordValueIndex, ok := relRecord.fieldsMap[one2m.rightKeyField.Name()]
+			if !ok {
+				return errors.New("Cannot find relation record primary key")
+			} else {
+				record.SetByName(one2m.leftKeyField.Name(), relRecord.values[relRecordValueIndex])
+			}
+			pers.save(relRecord)
+		}
+	}
+	return nil
+}
+
 // Saves single record
 func (pers *Persister) save(record *Record) error {
+	pers.saveMutex.Lock()
+	defer pers.saveMutex.Unlock()
+
+	if pers.transactionCounter > pers.TransactionSize {
+		err := pers.commit()
+		if err != nil {
+			return err
+		}
+		err = pers.BeginTx()
+		if err != nil {
+			return err
+		}
+		pers.preparedStatements = make(map[string]*sql.Stmt, 0)
+	}
 
 	stmt, err := pers.preparedStatement(record)
 	log.Println("SAVE()")
@@ -219,7 +275,7 @@ func (pers *Persister) save(record *Record) error {
 	if err != nil {
 		return err
 	}
-	result, err := execStatement(stmt, record.Values(), &pers.saveMutex)
+	result, err := execStatement(stmt, record.Values())
 	if err != nil {
 		log.Println(err)
 		return err

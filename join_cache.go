@@ -2,6 +2,7 @@ package otira
 
 import (
 	"errors"
+	"log"
 )
 
 type joinCache struct {
@@ -21,9 +22,27 @@ func (jc *joinCache) GetJoinKey(r *Record) (uint64, bool, error) {
 	}
 	joinKey, exists := jc.joinKeys[cacheKey]
 	if !exists {
-		joinKey, err = r.tableMeta.Next()
-		if err != nil {
-			return 0, true, err
+		// New record: Get the next primary key for the table
+		if r.tableMeta.useRecordPrimaryKeys {
+			var ok bool
+			index, ok := r.fieldsMap[r.tableMeta.primaryKey.Name()]
+			log.Println("Primary key field name=" + r.tableMeta.primaryKey.Name())
+			log.Println(index)
+			if !ok {
+				return 0, true, errors.New("Primary key:" + r.tableMeta.primaryKey.Name() + " is not in fieldmeta map")
+			}
+			switch k := r.values[index].(type) {
+			case uint64:
+				joinKey = k
+			default:
+				return 0, true, errors.New("Primary key:" + r.tableMeta.primaryKey.Name() + " is not type uint64" + "  " + toString(k))
+			}
+		} else {
+			joinKey, err = r.tableMeta.Next()
+			if err != nil {
+				return 0, true, err
+			}
+			r.values[r.fieldsMap[r.tableMeta.primaryKey.Name()]] = joinKey
 		}
 		jc.joinKeys[cacheKey] = joinKey
 	}
@@ -34,9 +53,9 @@ func (jc *joinCache) GetJoinKey(r *Record) (uint64, bool, error) {
 
 func (jc *joinCache) getJoinKey(r *Record) {
 	_, _ = makeKey(r)
-	//return nil
 }
 
+// Makes a key string from concatenating the discrimFields' values
 func makeKey(r *Record) (string, error) {
 	var keyString string
 

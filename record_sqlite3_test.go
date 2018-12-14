@@ -116,8 +116,8 @@ func TestCreateTableSyntaxFail(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
-
-	create, err := table.createTableString(new(DialectSqlite3))
+	dialect := new(DialectSqlite3)
+	create, err := dialect.CreateTableString(table)
 	_, err = db.Exec("ZZ " + create)
 
 	if err == nil {
@@ -131,7 +131,8 @@ func TestWriteRecordsFromTableMeta(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	record, err := table.NewRecordSomeFields(table.fields[0], table.fields[1], table.fields[2])
+	//record, err := table.NewRecordSomeFields(table.fields[0], table.fields[1], table.fields[2])
+	record, err := table.NewRecord()
 	if err != nil {
 		t.Error(err)
 	}
@@ -166,31 +167,28 @@ func TestWriteRecordsFromTableMeta(t *testing.T) {
 	}
 	defer db.Close()
 
-	tableCreateSql, err := table.createTableString(new(DialectSqlite3))
-	t.Log("+++ Create table SQL: " + tableCreateSql)
-	_, err = db.Exec(tableCreateSql)
-
-	if err != nil {
-		t.Log("Failing table create SQL:", tableCreateSql)
-		t.Fatal(err)
-	}
-
-	tx, err := db.Begin()
+	dialect := new(DialectSqlite3)
+	pers, err := NewPersister(db, dialect)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	record.Prepare(tx)
+	err = pers.CreateTable(table)
+	if err != nil {
+		t.Fatal(err)
+	}
 
-	err = record.Insert()
+	pers.BeginTx()
+
+	err = pers.save(record)
 	if err != nil {
 		t.Log(err)
 		t.Fatal(err)
 	}
-	for i := 100; i < 50000; i++ {
+	for i := 100; i < 201; i++ {
 		record.Reset()
 		record.Set(0, i)
-		err = record.Insert()
+		err = pers.save(record)
 		if err != nil {
 			t.Log(i)
 			t.Fatal(err)
@@ -198,7 +196,7 @@ func TestWriteRecordsFromTableMeta(t *testing.T) {
 	}
 
 	//t.Log(result.RowsAffected())
-	tx.Commit()
+	pers.commit()
 
 }
 

@@ -8,34 +8,34 @@ import (
 )
 
 func TestCreateSimpleOneToMany(t *testing.T) {
-	_, _, err := newOneToManyDefaultTables()
+	_, _, _, err := newOneToManyDefaultTables()
 	if err != nil {
 		t.Fatal(err)
 	}
 
 }
 
-func simpleOneToMany() (*Persister, *TableMeta, *TableMeta, error) {
+func simpleOneToMany() (*Persister, *TableMeta, *TableMeta, *OneToMany, error) {
 	db, err := sql.Open("sqlite3", ":memory:")
 	//db, err := sql.Open("sqlite3", "smith?_mutex=no&_journal_mode=OFF")
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, nil, nil, err
 	}
 	pers, err := NewPersister(db, NewDialectSqlite3(nil, false))
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, nil, nil, err
 	}
 
-	address, city, err := newOneToManyDefaultTables()
+	address, city, rel, err := newOneToManyDefaultTables()
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, nil, nil, err
 	}
 
-	return pers, address, city, nil
+	return pers, address, city, rel, nil
 }
 
 func TestVerifySimpleOneToManyCreateWorks(t *testing.T) {
-	pers, address, city, err := simpleOneToMany()
+	pers, address, city, _, err := simpleOneToMany()
 
 	if err != nil {
 		t.Fatal(err)
@@ -54,7 +54,7 @@ func TestVerifySimpleOneToManyCreateWorks(t *testing.T) {
 }
 
 func TestVerifySimpleOneToManyInsert(t *testing.T) {
-	pers, address, city, err := simpleOneToMany()
+	pers, address, city, _, err := simpleOneToMany()
 	defer pers.Done()
 	if err != nil {
 		t.Fatal(err)
@@ -87,10 +87,16 @@ func TestVerifySimpleOneToManyInsert(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
+
+	err = pers.Done()
+	if err != nil {
+		t.Error(err)
+	}
+
 }
 
 func TestVerifySimpleOneToManyInsert_FailMissingCity(t *testing.T) {
-	pers, addressTable, city, err := simpleOneToMany()
+	pers, addressTable, city, _, err := simpleOneToMany()
 	// defer func() {
 	// 	err := pers.Commit()
 	// 	if err != nil {
@@ -137,5 +143,40 @@ func TestVerifySimpleOneToManyInsert_FailMissingCity(t *testing.T) {
 		t.Error(err)
 	} else {
 		t.Log(err)
+	}
+}
+
+func TestVerifyOneToManyComplexSave(t *testing.T) {
+	pers, address, city, one2m, err := simpleOneToMany()
+	defer pers.Done()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = pers.CreateTable(city)
+	if err != nil {
+		t.Error(err)
+	}
+	err = pers.CreateTable(address)
+	if err != nil {
+		t.Error(err)
+	}
+
+	err = pers.BeginTx()
+	if err != nil {
+		t.Error(err)
+	}
+	cityRec1, err := makeCityRecord1(city)
+	if err != nil {
+		t.Error(err)
+	}
+	addressRec1, err := makeAddressRecord1(address)
+	err = addressRec1.AddRelationRecord(one2m, cityRec1)
+	if err != nil {
+		t.Error(err)
+	}
+	err = pers.Save(addressRec1)
+	if err != nil {
+		t.Error(err)
 	}
 }

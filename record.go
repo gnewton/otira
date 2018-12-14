@@ -86,6 +86,9 @@ func newRecord(tm *TableMeta, fields []FieldMeta, stmt *sql.Stmt) (*Record, erro
 }
 
 func (r *Record) AddRelationRecord(rel Relation, record *Record) error {
+	log.Println("AddRelationRecord")
+	log.Println(rel)
+	log.Println(record)
 	if rel == nil {
 		return errors.New("Relation is nil")
 	}
@@ -94,9 +97,6 @@ func (r *Record) AddRelationRecord(rel Relation, record *Record) error {
 		return errors.New("Record is nil")
 	}
 
-	if rel.Name() == "" {
-		return errors.New("Relation cannot have a zero length name")
-	}
 	relationRecord := new(RelationRecord)
 	relationRecord.record = record
 	relationRecord.relation = rel
@@ -109,6 +109,9 @@ func (r *Record) AddRelationRecord(rel Relation, record *Record) error {
 	case *ManyToMany:
 		log.Println(v.String())
 	}
+	log.Println(r.relationRecords[0].record)
+	log.Println(r.relationRecords[0].relation)
+	log.Println("END AddRelationRecord")
 	return nil
 }
 
@@ -124,11 +127,6 @@ func (r *Record) Reset() error {
 
 func (r *Record) Clone() (*Record, error) {
 	return newRecord(r.tableMeta, r.fields, r.stmt)
-}
-
-func (r *Record) Insert__OLD() error {
-	_, err := r.stmt.Exec(r.Values()...)
-	return err
 }
 
 func (r *Record) SetByName(f string, v interface{}) error {
@@ -156,22 +154,6 @@ func (r *Record) Set(i int, v interface{}) error {
 	r.values[i] = v
 	r.valueIsSet[i] = true
 	return nil
-}
-
-func (r *Record) Insert() error {
-	if r.stmt == nil {
-		return errors.New("Record statement is nil")
-	}
-	_, err := r.stmt.Exec(r.Values()...)
-	return err
-}
-
-func (r *Record) insert() error {
-	if r.stmt == nil {
-		return errors.New("Record statement is nil")
-	}
-	_, err := r.stmt.Exec(r.Values()...)
-	return err
 }
 
 func (r *Record) String() string {

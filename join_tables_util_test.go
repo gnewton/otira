@@ -9,21 +9,21 @@ const CITY = "city"
 const CITYFK = "cityfk"
 const NAME = "name"
 
-func newOneToManyDefaultTables() (*TableMeta, *TableMeta, error) {
+func newOneToManyDefaultTables() (*TableMeta, *TableMeta, *OneToMany, error) {
 	addressTable, err := makeAddressTable()
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 	cityTable, err := makeCityTable()
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 	one2m := NewOneToMany()
 	one2m.leftTable = addressTable
 	one2m.rightTable = cityTable
 	cityField := addressTable.GetField(CITYFK)
 	if cityField == nil {
-		return nil, nil, errors.New("Cannot find field: " + CITYFK + " in table: " + addressTable.name)
+		return nil, nil, nil, errors.New("Cannot find field: " + CITYFK + " in table: " + addressTable.name)
 
 	}
 	one2m.leftKeyField = cityField
@@ -31,7 +31,7 @@ func newOneToManyDefaultTables() (*TableMeta, *TableMeta, error) {
 
 	addressTable.AddOneTomany(one2m)
 	addressTable.SetDone()
-	return addressTable, cityTable, nil
+	return addressTable, cityTable, one2m, nil
 }
 
 func makeAddressTable() (*TableMeta, error) {

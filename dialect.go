@@ -39,7 +39,7 @@ func createTableString(dialect Dialect, t *TableMeta) {
 }
 
 type Dialect interface {
-	CreateTableString(t *TableMeta) string
+	CreateTableString(t *TableMeta) (string, error)
 	PreparedValueFormat(counter int) string
 	FieldType(FieldMeta) string
 	Constraints(FieldMeta) string

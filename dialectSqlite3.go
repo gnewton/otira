@@ -1,6 +1,7 @@
 package otira
 
 import (
+	"errors"
 	"log"
 	"strconv"
 )
@@ -8,6 +9,10 @@ import (
 var sqlite3DefaultPragmas = []string{
 	"PRAGMA foreign_keys = ON;",
 	"PRAGMA schema.cache_size =-20000;",
+	"pragma synchronous = OFF;",
+	"pragma journal_mode = OFF;",
+	"pragma count_changes = OFF;",
+	"pragma temp_store = MEMORY;",
 }
 
 type DialectSqlite3 struct {
@@ -30,7 +35,10 @@ func (d *DialectSqlite3) DropTableIfExists(tm *TableMeta) string {
 	return "DROP TABLE IF EXISTS " + tm.name
 }
 
-func (d *DialectSqlite3) CreateTableString(t *TableMeta) string {
+func (d *DialectSqlite3) CreateTableString(t *TableMeta) (string, error) {
+	if t == nil {
+		return "", errors.New("Tablemeta is nil")
+	}
 	s := CREATE_TABLE + SPC + t.name + " ("
 
 	for i, fm := range t.Fields() {
@@ -45,7 +53,7 @@ func (d *DialectSqlite3) CreateTableString(t *TableMeta) string {
 	}
 	s += d.ForeignKeys(t)
 	s += ")"
-	return s
+	return s, nil
 }
 
 func (d *DialectSqlite3) ForeignKeys(t *TableMeta) string {

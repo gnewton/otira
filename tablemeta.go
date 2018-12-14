@@ -6,25 +6,28 @@ import (
 )
 
 type TableMeta struct {
-	name          string
-	fields        []FieldMeta
-	fieldsMap     map[string]FieldMeta
-	inited        bool
-	primaryKey    FieldMeta
-	oneToMany     []*OneToMany
-	oneToManyMap  map[string]*OneToMany
-	manyToMany    []*ManyToMany
-	manyToManyMap map[string]*ManyToMany
-	indexes       []*Index
-	done          bool
 	ICounter
-	discrimFields []FieldMeta
+	name                 string
+	fields               []FieldMeta
+	fieldsMap            map[string]FieldMeta
+	inited               bool
+	primaryKey           FieldMeta
+	oneToMany            []*OneToMany
+	oneToManyMap         map[string]*OneToMany
+	manyToMany           []*ManyToMany
+	manyToManyMap        map[string]*ManyToMany
+	indexes              []*Index
+	done                 bool
+	discrimFields        []FieldMeta
+	useRecordPrimaryKeys bool
 }
 
 func NewTableMeta(name string) (*TableMeta, error) {
 	t := new(TableMeta)
 	t.name = name
 	t.done = false
+	t.useRecordPrimaryKeys = false
+	t.value = 0
 	return t, nil
 }
 
@@ -134,6 +137,14 @@ func (t *TableMeta) NewRecordSomeFields(fields ...FieldMeta) (*Record, error) {
 		return nil, err
 	}
 	//log.Println("fields", fields)
+	if !t.useRecordPrimaryKeys {
+		pk, err := t.Next()
+		if err != nil {
+			return nil, err
+		}
+		rec.SetByName(t.PrimaryKey().Name(), pk)
+	}
+	rec.SetByName(t.PrimaryKey().Name(), -1)
 	return rec, nil
 }
 
@@ -182,7 +193,7 @@ func (t *TableMeta) createTableString(dialect Dialect) (string, error) {
 	if dialect == nil {
 		return "", errors.New("Dialect is nil")
 	}
-	return dialect.CreateTableString(t), nil
+	return dialect.CreateTableString(t)
 }
 
 func (t *TableMeta) CreatePreparedStatementInsertAllFields(dialect Dialect) (string, error) {
