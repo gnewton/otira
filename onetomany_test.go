@@ -41,16 +41,10 @@ func TestVerifySimpleOneToManyCreateWorks(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	err = pers.CreateTable(city)
+	err = pers.CreateTables(city, address)
 	if err != nil {
 		t.Error(err)
 	}
-
-	err = pers.CreateTable(address)
-	if err != nil {
-		t.Error(err)
-	}
-
 }
 
 func TestVerifySimpleOneToManyInsert(t *testing.T) {
@@ -60,19 +54,11 @@ func TestVerifySimpleOneToManyInsert(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	err = pers.CreateTable(city)
-	if err != nil {
-		t.Error(err)
-	}
-	err = pers.CreateTable(address)
+	err = pers.CreateTables(city, address)
 	if err != nil {
 		t.Error(err)
 	}
 
-	err = pers.BeginTx()
-	if err != nil {
-		t.Error(err)
-	}
 	cityRec1, err := makeCityRecord1(city)
 	if err != nil {
 		t.Error(err)
@@ -113,16 +99,7 @@ func TestVerifySimpleOneToManyInsert_FailMissingCity(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	err = pers.CreateTable(city)
-	if err != nil {
-		t.Error(err)
-	}
-	err = pers.CreateTable(addressTable)
-	if err != nil {
-		t.Error(err)
-	}
-
-	err = pers.BeginTx()
+	err = pers.CreateTables(city, addressTable)
 	if err != nil {
 		t.Error(err)
 	}
@@ -153,16 +130,7 @@ func TestVerifyOneToManyComplexSave(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	err = pers.CreateTable(city)
-	if err != nil {
-		t.Error(err)
-	}
-	err = pers.CreateTable(address)
-	if err != nil {
-		t.Error(err)
-	}
-
-	err = pers.BeginTx()
+	err = pers.CreateTables(city, address)
 	if err != nil {
 		t.Error(err)
 	}

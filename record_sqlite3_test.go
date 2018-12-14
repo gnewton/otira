@@ -173,12 +173,10 @@ func TestWriteRecordsFromTableMeta(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	err = pers.CreateTable(table)
+	err = pers.CreateTables(table)
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	pers.BeginTx()
 
 	err = pers.save(record)
 	if err != nil {

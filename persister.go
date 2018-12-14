@@ -18,7 +18,9 @@ type Persister struct {
 
 	relationPKCacheMap map[Relation]map[string]int64
 
-	saveMutex sync.Mutex
+	saveMutex          sync.Mutex
+	createMutex        sync.Mutex
+	doneCreatingTables bool
 }
 
 // needs to also have
@@ -50,7 +52,7 @@ func NewPersister(db *sql.DB, dialect Dialect) (*Persister, error) {
 	pers.preparedStatements = make(map[string]*sql.Stmt, 0)
 	pers.preparedStrings = make(map[string]string, 0)
 	pers.relationPKCacheMap = make(map[Relation]map[string]int64)
-
+	pers.doneCreatingTables = false
 	return pers, nil
 }
 
@@ -69,35 +71,48 @@ func (pers *Persister) initPragmas() error {
 	return nil
 }
 
-func (pers *Persister) CreateTable(tm *TableMeta) error {
+func (pers *Persister) CreateTables(tms ...*TableMeta) error {
+	if pers.doneCreatingTables {
+		return errors.New("CreateTables can only be called once")
+	}
+
+	pers.createMutex.Lock()
+	defer pers.createMutex.Unlock()
+
 	if pers.db == nil {
 		return errors.New("db cannot be nil")
 	}
-	if tm == nil {
+	if tms == nil {
 		return errors.New("TableMeta cannot be nil")
 	}
 
 	if pers.dialect == nil {
 		return errors.New("Dialect cannot be nil")
 	}
-	createTableString, err := tm.createTableString(pers.dialect)
-	if err != nil {
-		return err
-	}
 
-	// Delete table
-	sql := pers.dialect.DropTableIfExists(tm)
-	log.Println(sql)
-	_, err = exec(pers.db, sql)
-	if err != nil {
-		return err
+	for i := 0; i < len(tms); i++ {
+		tm := tms[i]
+		createTableString, err := tm.createTableString(pers.dialect)
+		if err != nil {
+			return err
+		}
+
+		// Delete table
+		sql := pers.dialect.DropTableIfExists(tm)
+		log.Println(sql)
+		_, err = exec(pers.db, sql)
+		if err != nil {
+			return err
+		}
+		log.Println("createTableString=" + createTableString)
+		// Create the table in the db
+		_, err = exec(pers.db, createTableString)
+		if err != nil {
+			return err
+		}
 	}
-	log.Println("createTableString=" + createTableString)
-	// Create the table in the db
-	_, err = exec(pers.db, createTableString)
-	if err != nil {
-		return err
-	}
+	pers.doneCreatingTables = true
+	err := pers.BeginTx()
 	return err
 
 }
@@ -115,6 +130,9 @@ func (pers *Persister) BeginTx() error {
 		return nil
 	}
 	log.Println("=============================START TX")
+	pers.saveMutex.Lock()
+	defer pers.saveMutex.Unlock()
+
 	var err error
 	pers.tx, err = pers.db.Begin()
 	pers.transactionCounter = 0
@@ -129,7 +147,12 @@ func (pers *Persister) commit() error {
 func (pers *Persister) Done() error {
 	// commit last transation
 	// close db
-	return pers.commit()
+	if pers.tx != nil {
+		return pers.commit()
+	} else {
+		return nil
+	}
+
 }
 
 func (pers *Persister) prepareRelationRecords(record *Record) ([]*Record, error) {
