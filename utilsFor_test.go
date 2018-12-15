@@ -12,35 +12,52 @@ func newDefaultTestTable(singleDiscrimField bool) (*TableMeta, error) {
 		return nil, err
 	}
 
-	f0 := new(FieldMetaInt)
+	f0 := new(FieldMetaUint64)
 	f0.SetName(pk)
 	f0.SetUnique(true)
-	table.Add(f0)
-	table.SetPrimaryKey(f0)
+	err = table.Add(f0)
+	if err != nil {
+		return nil, err
+	}
 
 	f1 := new(FieldMetaString)
 	f1.SetName(f_firstname)
 	f1.SetFixed(true)
 	f1.SetLength(24)
-	table.Add(f1)
+	err = table.Add(f1)
+	if err != nil {
+		return nil, err
+	}
 
 	f2 := new(FieldMetaFloat)
 	f2.SetName(f_birth)
 	f2.SetLength(32)
-	table.Add(f2)
+	err = table.Add(f2)
+	if err != nil {
+		return nil, err
+	}
 
 	f3 := new(FieldMetaString)
 	f3.SetName(f_age)
 	f3.SetLength(64)
-	table.Add(f3)
+	err = table.Add(f3)
+	if err != nil {
+		return nil, err
+	}
 
 	f4 := new(FieldMetaFloat)
 	f4.SetName(f_height)
-	table.Add(f4)
+	err = table.Add(f4)
+	if err != nil {
+		return nil, err
+	}
 
 	f5 := new(FieldMetaInt)
 	f5.SetName(tAddress)
-	table.Add(f5)
+	err = table.Add(f5)
+	if err != nil {
+		return nil, err
+	}
 
 	if singleDiscrimField {
 		table.SetDiscrimFields(f0)
@@ -89,22 +106,31 @@ func newOneToManyTestTable() (*TableMeta, *TableMeta, Relation, error) {
 		return nil, nil, nil, err
 	}
 
+	var pk FieldMeta
+	pk = new(FieldMetaUint64)
+	pk.SetName("id")
+	pk.SetUnique(true)
+	err = address.Add(pk)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
 	var street FieldMeta
 	street = new(FieldMetaString)
 	street.SetName(fstreet)
-	address.Add(street)
+	err = address.Add(street)
+	if err != nil {
+		return nil, nil, nil, err
+	}
 
 	var city FieldMeta
 	city = new(FieldMetaString)
 	city.SetName(fcity)
-	address.Add(city)
+	err = address.Add(city)
+	if err != nil {
+		return nil, nil, nil, err
+	}
 
-	var pk FieldMeta
-	pk = new(FieldMetaInt)
-	pk.SetName("id")
-	pk.SetUnique(true)
-	address.Add(pk)
-	address.SetPrimaryKey(pk)
 	address.SetDone()
 
 	relation := new(OneToMany)

@@ -102,6 +102,19 @@ type FieldMetaInt struct {
 	FieldMetaImpl
 }
 
+type FieldMetaUint64 struct {
+	FieldMetaImpl
+}
+
+func (fm *FieldMetaUint64) IsSameType(v interface{}) bool {
+	_, ok := v.(uint64)
+	_, ok = v.(uint64)
+	if ok {
+		return true
+	}
+	return false
+}
+
 func (fm *FieldMetaInt) IsSameType(v interface{}) bool {
 
 	_, ok := v.(int)

@@ -36,14 +36,14 @@ func TestPersistFewRecords(t *testing.T) {
 
 	table, err := newDefaultTestTable(false)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	table.SetDone()
 
 	err = pers.CreateTables(table)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	for i := 0; i < 100; i++ {

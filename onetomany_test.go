@@ -43,40 +43,78 @@ func TestVerifySimpleOneToManyCreateWorks(t *testing.T) {
 
 	err = pers.CreateTables(city, address)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 }
 
-func TestVerifySimpleOneToManyInsert(t *testing.T) {
+func TestVerifysShallowOneToManyInsert(t *testing.T) {
 	pers, address, city, _, err := simpleOneToMany()
-	defer pers.Done()
+
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	err = pers.CreateTables(city, address)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	cityRec1, err := makeCityRecord1(city)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
+	// Here we are individually saving, calling save() not Save()
 	err = pers.save(cityRec1)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	addressRec1, err := makeAddressRecord1(address)
 	err = pers.save(addressRec1)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	err = pers.Done()
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
+	}
+
+}
+
+//func TestVerifysDeepOneToManyInsert(t *testing.T) {
+func Foo(t *testing.T) {
+	pers, address, city, _, err := simpleOneToMany()
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = pers.CreateTables(city, address)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	cityRec1, err := makeCityRecord1(city)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Here we are deep saving, calling Save() not save();
+	//   Save() should recursively save City, then Address, populating address.cityfk with city.fk
+	addressRec1, err := makeAddressRecord1(address)
+	err = addressRec1.AddRelationRecord(nil, cityRec1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = pers.Save(addressRec1)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = pers.Done()
+	if err != nil {
+		t.Fatal(err)
 	}
 
 }
@@ -101,23 +139,23 @@ func TestVerifySimpleOneToManyInsert_FailMissingCity(t *testing.T) {
 
 	err = pers.CreateTables(city, addressTable)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 	cityRec2, err := makeCityRecord2(city)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	err = pers.save(cityRec2)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	addressRec1, err := makeAddressRecord1(addressTable)
 	err = pers.save(addressRec1)
 	// Should fail due to foreign key constraints
 	if err == nil {
-		t.Error(err)
+		t.Fatal(err)
 	} else {
 		t.Log(err)
 	}
@@ -125,26 +163,27 @@ func TestVerifySimpleOneToManyInsert_FailMissingCity(t *testing.T) {
 
 func TestVerifyOneToManyComplexSave(t *testing.T) {
 	pers, address, city, one2m, err := simpleOneToMany()
-	defer pers.Done()
+
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	err = pers.CreateTables(city, address)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 	cityRec1, err := makeCityRecord1(city)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 	addressRec1, err := makeAddressRecord1(address)
 	err = addressRec1.AddRelationRecord(one2m, cityRec1)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 	err = pers.Save(addressRec1)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
+	defer pers.Done()
 }

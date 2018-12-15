@@ -1,0 +1,266 @@
+
+counter.go,91
+package otira1,0
+type Counter 8,49
+type ICounter 13,126
+func (c *ICounter) Next(17,166
+
+dialect.go,103
+package otira1,0
+func preparedValueFormat(22,553
+func createTableString(37,869
+type Dialect 41,929
+
+dialectMysql.go,141
+package otira1,0
+type DialectMysql 7,34
+func (d *DialectMysql) CreateTableString(10,64
+func (d *DialectMysql) PreparedValueFormat(15,167
+
+dialectOracle.go,144
+package otira1,0
+type DialectOracle 8,45
+func (d *DialectOracle) CreateTableString(11,76
+func (d *DialectOracle) PreparedValueFormat(16,180
+
+dialectPostgresql.go,396
+package otira1,0
+type DialectPostgresql 8,45
+func (d *DialectPostgresql) CreateTableString(11,80
+func (d *DialectPostgresql) PreparedValueFormat(16,202
+func (d *DialectPostgresql) FieldType(20,313
+func (d *DialectPostgresql) Constraints(24,389
+func (d *DialectPostgresql) ForeignKeys(28,470
+func (d *DialectPostgresql) Pragmas(33,558
+func (d *DialectPostgresql) DropTableIfExists(40,656
+
+dialectSqlite3.go,468
+package otira1,0
+type DialectSqlite3 18,289
+func NewDialectSqlite3(22,339
+func (d *DialectSqlite3) DropTableIfExists(34,645
+func (d *DialectSqlite3) CreateTableString(38,757
+func (d *DialectSqlite3) ForeignKeys(59,1176
+func (d *DialectSqlite3) oneToManyForeignKeys(66,1296
+func (d *DialectSqlite3) Constraints(80,1694
+func (d *DialectSqlite3) FieldType(90,1862
+func (d *DialectSqlite3) PreparedValueFormat(114,2293
+func (d *DialectSqlite3) Pragmas(118,2375
+
+director.go,169
+package otira1,0
+type Director 12,90
+func NewDirector(20,253
+func (dir *Director) Save(52,926
+func (dir *Director) Done(69,1217
+func (dir *Director) start(82,1394
+
+field.go,105
+package otira1,0
+type Field 7,37
+func (f *Field) SetValueFast(13,126
+func (f *Field) SetValue(18,210
+
+fieldmeta.go,39
+package otira1,0
+type FieldMeta 3,15
+
+fieldmetaImpl.go,1178
+package otira1,0
+type FieldMetaImpl 8,42
+func (b *FieldMetaImpl) SetName(20,233
+func (b *FieldMetaImpl) Name(23,291
+func (b *FieldMetaImpl) SetTable(27,349
+func (b *FieldMetaImpl) Table(31,422
+func (b *FieldMetaImpl) SetLength(35,486
+func (b *FieldMetaImpl) Length(39,546
+func (b *FieldMetaImpl) Unique(43,605
+func (b *FieldMetaImpl) SetUnique(46,664
+func (b *FieldMetaImpl) Indexed(49,724
+func (b *FieldMetaImpl) SetIndexed(52,785
+func (b *FieldMetaImpl) Nullable(56,848
+func (b *FieldMetaImpl) SetNullable(59,911
+func (b *FieldMetaImpl) Fixed(63,976
+func (b *FieldMetaImpl) SetFixed(66,1033
+func (b *FieldMetaImpl) String(70,1092
+type FieldMetaString 80,1476
+func (fm *FieldMetaString) IsSameType(84,1524
+type FieldMetaFloat 89,1619
+func (fm *FieldMetaFloat) IsSameType(93,1666
+type FieldMetaInt 101,1796
+type FieldMetaUint64 105,1841
+func (fm *FieldMetaUint64) IsSameType(109,1889
+func (fm *FieldMetaInt) IsSameType(118,2033
+type FieldMetaByte 177,2615
+func (fm *FieldMetaByte) IsSameType(181,2661
+type FieldMetaTime 186,2754
+func (fm *FieldMetaTime) IsSameType(190,2800
+type FieldMetaBool 199,2953
+func (fm *FieldMetaBool) IsSameType(203,2999
+
+index.go,55
+package otira1,0
+type Index 3,15
+func NewIndex(8,82
+
+join_cache.go,167
+package otira1,0
+type joinCache 8,44
+func NewJoinCache(12,99
+func (jc *joinCache) GetJoinKey(18,207
+func (jc *joinCache) getJoinKey(54,1242
+func makeKey(59,1376
+
+join_cache_test.go,145
+package otira1,0
+func TestJoinKey(9,55
+func TestJoinKeyOneDiscrimField(36,475
+func TestJoinCache(60,861
+func TestJoinCacheDuplicate(93,1463
+
+join_tables_util_test.go,211
+package otira1,0
+func newOneToManyDefaultTables(12,126
+func makeAddressTable(38,877
+func makeCityTable(72,1534
+func makeCityRecord1(106,2190
+func makeCityRecord2(123,2478
+func makeAddressRecord1(140,2766
+
+onetomany.go,42
+package otira1,0
+func NewOneToMany(3,15
+
+onetomany_test.go,309
+package otira1,0
+func TestCreateSimpleOneToMany(10,96
+func simpleOneToMany(18,227
+func TestVerifySimpleOneToManyCreateWorks(37,743
+func TestVerifysShallowOneToManyInsert(50,966
+func Foo(86,1630
+func TestVerifySimpleOneToManyInsert_FailMissingCity(122,2324
+func TestVerifyOneToManyComplexSave(164,3067
+
+persister.go,979
+package otira1,0
+type Persister 10,68
+func NewPersister(28,569
+func (pers *Persister) initPragmas(59,1287
+func (pers *Persister) CreateTables(74,1593
+func exec(120,2553
+func execStatement(124,2633
+func (pers *Persister) BeginTx(128,2744
+func (pers *Persister) commit(142,3022
+func (pers *Persister) Done(147,3142
+func (pers *Persister) prepareRelationRecords(158,3294
+func (pers *Persister) prepareOneToManyRecord(175,3875
+func (pers *Persister) prepareManyToManyRecord(189,4377
+func (pers *Persister) preparedString(194,4568
+func (pers *Persister) preparedStatement(213,5134
+func (pers *Persister) Save(238,5956
+func (pers *Persister) saveRelations(247,6116
+func (pers *Persister) saveOneToMany(255,6284
+func (pers *Persister) save(278,7066
+func (pers *Persister) CreatePreparedStatementInsertAllFields(319,7897
+func (pers *Persister) CreatePreparedStatementInsertFromRecord(324,8114
+func (pers *Persister) CreatePreparedStatementInsertSomeFields(335,8496
+
+persister_test.go,153
+package otira1,0
+func TestPersistInstantiate(9,87
+func TestPersistFewRecords(24,333
+func TestPersistNoDbFail(69,1100
+func TestNoDialectFail(76,1229
+
+record.go,408
+package otira1,0
+type Record 10,71
+type RelationRecord 24,387
+func (r *Record) Prepare(29,456
+func (r *Record) Values(54,864
+func newRecord(58,926
+func (r *Record) AddRelationRecord(88,1664
+func (r *Record) Reset(118,2374
+func (r *Record) Clone(128,2545
+func (r *Record) SetByName(132,2641
+func (r *Record) Set(145,2934
+func (r *Record) PrimaryKeyValue(159,3297
+func (r *Record) String(163,3354
+
+record_sqlite3_test.go,446
+package otira1,0
+func TestNewPreparedStatement(19,274
+func TestNewTableOneToMany(32,529
+func TestAddOneToManyRecordToMainRecord(39,651
+func TestAddOneToManyRecordToMainRecordByRelationStringName_BadName(62,1052
+func TestTableCreate(75,1357
+func TestCreateTableSyntax(89,1579
+func TestCreateTableSyntaxFail(109,1924
+func TestWriteRecordsFromTableMeta(129,2300
+func TestRecordFromTableMetaTODO(201,3478
+func TestValidateSqlite3(223,4045
+
+record_test.go,40
+package otira1,0
+func TestRecord(8,47
+
+relations.go,222
+package otira1,0
+type Relation 3,15
+type BaseRelation 7,59
+func (rel *BaseRelation) Name(16,370
+type OneToMany 20,431
+func (otm *OneToMany) String(24,472
+type ManyToMany 28,547
+func (mtm *ManyToMany) String(33,611
+
+tablemeta.go,964
+package otira1,0
+type TableMeta 9,101
+func NewTableMeta(27,608
+func (t *TableMeta) AddOneTomany(43,970
+func (t *TableMeta) SetPrimaryKey(50,1134
+func (t *TableMeta) PrimaryKey(55,1229
+func (t *TableMeta) SetDiscrimFields(59,1298
+func (t *TableMeta) GetOneToMany(63,1387
+func (t *TableMeta) AddOneToMany(73,1525
+func (t *TableMeta) GetField(86,1860
+func (t *TableMeta) Fields(96,1988
+func (t *TableMeta) GetName(100,2051
+func (t *TableMeta) SetDone(104,2108
+func (t *TableMeta) validate(115,2307
+func (t *TableMeta) Done(128,2583
+func (t *TableMeta) NewRecordSomeFields(132,2635
+func (t *TableMeta) NewRecord(159,3270
+func (t *TableMeta) AddIndex(169,3475
+func (t *TableMeta) Add(179,3742
+func (t *TableMeta) createTableString(206,4239
+func (t *TableMeta) CreatePreparedStatementInsertAllFields(216,4481
+func (t *TableMeta) CreatePreparedStatementInsertFromRecord(221,4664
+func (t *TableMeta) CreatePreparedStatementInsertSomeFields(237,5101
+
+tablemeta_test.go,216
+package otira1,0
+func TestCreateTable(8,47
+func TestAddFieldToTable(29,440
+func TestAddComplexIndexToTable(45,724
+func TestCreatePreparedStatementInsert(63,1020
+func TestDetectNoPrimaryKeyWithValidate(102,1765
+
+util.go,127
+package otira1,0
+func baseFieldMetaErrors(8,48
+func findRelationPK(18,244
+func supportedType(37,831
+func toString(48,1054
+
+utilsFor_test.go,126
+package otira1,0
+func newDefaultTestTable(9,64
+func populateDefaultTableRecord(75,1153
+func newOneToManyTestTable(99,1557
+
+util_test.go,89
+package otira1,0
+func TestAllSupportedTypes(8,48
+func TestSomeUnSupportedTypes(22,367

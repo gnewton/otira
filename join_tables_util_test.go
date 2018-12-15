@@ -28,6 +28,7 @@ func newOneToManyDefaultTables() (*TableMeta, *TableMeta, *OneToMany, error) {
 	}
 	one2m.leftKeyField = cityField
 	one2m.rightKeyField = cityTable.PrimaryKey()
+	one2m.rightTableUniqueFields = []FieldMeta{cityField}
 
 	addressTable.AddOneTomany(one2m)
 	addressTable.SetDone()
@@ -40,21 +41,29 @@ func makeAddressTable() (*TableMeta, error) {
 		return nil, err
 	}
 
-	id := new(FieldMetaInt)
+	id := new(FieldMetaUint64)
 	id.SetName(pk)
 	id.SetUnique(true)
-	addressTable.Add(id)
-	addressTable.SetPrimaryKey(id)
+	err = addressTable.Add(id)
+	if err != nil {
+		return nil, err
+	}
 
 	streetField := new(FieldMetaString)
 	streetField.SetName(STREET)
 	streetField.SetFixed(true)
 	streetField.SetLength(24)
-	addressTable.Add(streetField)
+	err = addressTable.Add(streetField)
+	if err != nil {
+		return nil, err
+	}
 
 	cityField := new(FieldMetaInt)
 	cityField.SetName(CITYFK)
-	addressTable.Add(cityField)
+	err = addressTable.Add(cityField)
+	if err != nil {
+		return nil, err
+	}
 
 	return addressTable, nil
 }
@@ -64,17 +73,22 @@ func makeCityTable() (*TableMeta, error) {
 	if err != nil {
 		return nil, err
 	}
-	id := new(FieldMetaInt)
+	id := new(FieldMetaUint64)
 	id.SetName(pk)
 	id.SetUnique(true)
-	cityTable.Add(id)
-	cityTable.SetPrimaryKey(id)
+	err = cityTable.Add(id)
+	if err != nil {
+		return nil, err
+	}
 
 	nameField := new(FieldMetaString)
 	nameField.SetName(NAME)
 	nameField.SetFixed(true)
 	nameField.SetLength(24)
-	cityTable.Add(nameField)
+	err = cityTable.Add(nameField)
+	if err != nil {
+		return nil, err
+	}
 	cityTable.SetDone()
 	return cityTable, err
 }

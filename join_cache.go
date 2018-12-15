@@ -2,7 +2,6 @@ package otira
 
 import (
 	"errors"
-	"log"
 )
 
 type joinCache struct {
@@ -24,25 +23,19 @@ func (jc *joinCache) GetJoinKey(r *Record) (uint64, bool, error) {
 	if !exists {
 		// New record: Get the next primary key for the table
 		if r.tableMeta.useRecordPrimaryKeys {
-			var ok bool
-			index, ok := r.fieldsMap[r.tableMeta.primaryKey.Name()]
-			log.Println("Primary key field name=" + r.tableMeta.primaryKey.Name())
-			log.Println(index)
+			pk, ok := r.values[0].(uint64)
 			if !ok {
-				return 0, true, errors.New("Primary key:" + r.tableMeta.primaryKey.Name() + " is not in fieldmeta map")
+				return 0, false, errors.New("Primary key value is not uint64")
+			} else {
+				joinKey = pk
 			}
-			switch k := r.values[index].(type) {
-			case uint64:
-				joinKey = k
-			default:
-				return 0, true, errors.New("Primary key:" + r.tableMeta.primaryKey.Name() + " is not type uint64" + "  " + toString(k))
-			}
+
 		} else {
 			joinKey, err = r.tableMeta.Next()
 			if err != nil {
 				return 0, true, err
 			}
-			r.values[r.fieldsMap[r.tableMeta.primaryKey.Name()]] = joinKey
+			r.values[0] = joinKey
 		}
 		jc.joinKeys[cacheKey] = joinKey
 	}

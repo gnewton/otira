@@ -5,6 +5,7 @@ import (
 	"log"
 )
 
+//Assumes 0th field is primary key, type FieldMetaUint64
 type TableMeta struct {
 	ICounter
 	name                 string
@@ -20,6 +21,7 @@ type TableMeta struct {
 	done                 bool
 	discrimFields        []FieldMeta
 	useRecordPrimaryKeys bool
+	primaryKeyIndex      int
 }
 
 func NewTableMeta(name string) (*TableMeta, error) {
@@ -28,6 +30,13 @@ func NewTableMeta(name string) (*TableMeta, error) {
 	t.done = false
 	t.useRecordPrimaryKeys = false
 	t.value = 0
+
+	t.oneToMany = make([]*OneToMany, 0)
+	t.oneToManyMap = make(map[string]*OneToMany)
+	t.indexes = make([]*Index, 0)
+	t.fieldsMap = make(map[string]FieldMeta, 0)
+	t.fields = make([]FieldMeta, 0)
+
 	return t, nil
 }
 
@@ -38,12 +47,8 @@ func (t *TableMeta) AddOneTomany(one2m *OneToMany) {
 	t.oneToMany = append(t.oneToMany, one2m)
 }
 
-func (t *TableMeta) SetPrimaryKey(pk FieldMeta) {
-	t.primaryKey = pk
-}
-
 func (t *TableMeta) PrimaryKey() FieldMeta {
-	return t.primaryKey
+	return t.fields[0]
 }
 
 func (t *TableMeta) SetDiscrimFields(fields ...FieldMeta) {
@@ -68,10 +73,6 @@ func (t *TableMeta) AddOneToMany(rel *OneToMany) error {
 		return errors.New("Relation cannot have a zero length name")
 	}
 	log.Println("@@@@@@@@@@@@@@@ " + rel.name)
-	if t.oneToMany == nil {
-		t.oneToMany = make([]*OneToMany, 0)
-		t.oneToManyMap = make(map[string]*OneToMany)
-	}
 	t.oneToMany = append(t.oneToMany, rel)
 	t.oneToManyMap[rel.name] = rel
 	return nil
@@ -96,7 +97,6 @@ func (t *TableMeta) GetName() string {
 }
 
 func (t *TableMeta) SetDone() error {
-
 	err := t.validate()
 	if err != nil {
 		log.Println(err)
@@ -108,11 +108,11 @@ func (t *TableMeta) SetDone() error {
 
 // check kto see if there is one and only one primary key
 func (t *TableMeta) validate() error {
+	if t == nil {
+		return errors.New("FATAL !!!!!!!!!!!!!!!!!!! tablemeta is nil")
+	}
 	if t.fields == nil {
 		return errors.New("fields is nil")
-	}
-	if t.primaryKey == nil {
-		return errors.New("Primary key must be set")
 	}
 	return nil
 }
@@ -158,12 +158,13 @@ func (t *TableMeta) NewRecord() (*Record, error) {
 
 }
 
-func (t *TableMeta) AddIndex(name string, field0, field1 *FieldMeta, fields ...*FieldMeta) {
+func (t *TableMeta) AddIndex(name string, field0, field1 *FieldMeta, fields ...*FieldMeta) error {
 	if t.indexes == nil {
-		t.indexes = make([]*Index, 1)
+		return errors.New("Index is nil")
 	}
 	index := NewIndex(name, field0, field1, fields...)
 	t.indexes = append(t.indexes, index)
+	return nil
 
 }
 
@@ -173,11 +174,19 @@ func (t *TableMeta) Add(f FieldMeta) error {
 	}
 
 	if t.fieldsMap == nil {
-		t.fieldsMap = make(map[string]FieldMeta, 0)
+		return errors.New("fieldsMap is nil")
 	}
 
 	if t.fields == nil {
-		t.fields = make([]FieldMeta, 0)
+		return errors.New("fields is nil")
+	}
+
+	// First field?
+	if len(t.fields) == 0 {
+		_, ok := f.(*FieldMetaUint64)
+		if !ok {
+			return errors.New("First fieldmeta added must be primary key type FieldMetaUint64")
+		}
 	}
 
 	t.fieldsMap[f.Name()] = f

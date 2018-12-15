@@ -9,7 +9,7 @@ func TestCreateTable(t *testing.T) {
 
 	_, err := NewTableMeta("journals")
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 }
@@ -29,43 +29,45 @@ var fieldnames []string = []string{"city", "stateprovince"}
 func TestAddFieldToTable(t *testing.T) {
 	table, err := NewTableMeta(tablename)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
-	f := new(FieldMetaString)
+	f := new(FieldMetaUint64)
 	f.SetName(f_firstname)
 	t.Log(f.String())
-	table.Add(f)
-	table.SetPrimaryKey(f)
+	err = table.Add(f)
+	if err != nil {
+		t.Fatal(err)
+	}
 	table.SetDone()
 }
 
 func TestAddComplexIndexToTable(t *testing.T) {
 	table, err := NewTableMeta(tablename)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
-	f := new(FieldMetaString)
+	f := new(FieldMetaUint64)
 	f.SetName("people")
-	table.SetPrimaryKey(f)
+
 	t.Log(f.String())
 	err = table.Add(f)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 	//TODO
-	//t.Error(err)
+	//t.Fatal(err)
 
 }
 
 func TestCreatePreparedStatementInsert(t *testing.T) {
 	table, err := NewTableMeta(tablename)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
-	pk := new(FieldMetaInt)
+	pk := new(FieldMetaUint64)
 	pk.SetName("id")
-	table.SetPrimaryKey(pk)
+
 	t.Log(pk.String())
 	err = table.Add(pk)
 	f := new(FieldMetaString)
@@ -73,48 +75,25 @@ func TestCreatePreparedStatementInsert(t *testing.T) {
 	t.Log(f.String())
 	err = table.Add(f)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 	err = table.SetDone()
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 	s := INSERT + tablename + " (id, " + f_firstname + ") " + VALUES + " ($1, $2)"
 	dialect := new(DialectPostgresql)
 	p, err := table.CreatePreparedStatementInsertSomeFields(dialect, pk, f)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 	if p != s {
 		t.Log(s)
 		t.Log(p)
 		t.Log(p == s)
-		t.Error("fdoo")
+		t.Fatal("fdoo")
 	}
 	//TODO
-	//t.Error(err)
+	//t.Fatal(err)
 
-}
-
-func TestDetectNoPrimaryKeyWithValidate(t *testing.T) {
-	table, err := NewTableMeta(tablename)
-	if err != nil {
-		t.Error(err)
-	}
-
-	f0 := new(FieldMetaInt)
-	f0.SetName(pk)
-	f0.SetUnique(true)
-	table.Add(f0)
-
-	f1 := new(FieldMetaString)
-	f1.SetName(f_firstname)
-	f1.SetFixed(true)
-	f1.SetLength(24)
-	table.Add(f1)
-
-	err = table.SetDone()
-	if err == nil {
-		t.Error(err)
-	}
 }

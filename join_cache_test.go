@@ -10,7 +10,7 @@ func TestJoinKey(t *testing.T) {
 	log.Println(1)
 	table, err := newDefaultTestTable(false)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 	log.Println(2)
 	table.SetDone()
@@ -36,7 +36,7 @@ func TestJoinKey(t *testing.T) {
 func TestJoinKeyOneDiscrimField(t *testing.T) {
 	table, err := newDefaultTestTable(true)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	table.SetDone()
@@ -61,7 +61,7 @@ func TestJoinCache(t *testing.T) {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	table, err := newDefaultTestTable(true)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	table.SetDone()
@@ -93,7 +93,7 @@ func TestJoinCache(t *testing.T) {
 func TestJoinCacheDuplicate(t *testing.T) {
 	table, err := newDefaultTestTable(true)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 	table.useRecordPrimaryKeys = true
 	table.SetDone()

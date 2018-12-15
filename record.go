@@ -156,6 +156,10 @@ func (r *Record) Set(i int, v interface{}) error {
 	return nil
 }
 
+func (r *Record) PrimaryKeyValue() uint64 {
+	return 0
+}
+
 func (r *Record) String() string {
 	var s string
 

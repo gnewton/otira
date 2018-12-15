@@ -98,8 +98,8 @@ func (d *DialectSqlite3) FieldType(fm FieldMeta) string {
 		}
 		s += "(" + strconv.Itoa(fm.Length()) + ")"
 		return s
-	case *FieldMetaInt:
-		return "INTEGER"
+	case *FieldMetaInt, *FieldMetaUint64:
+		return "UNSIGNED BIG INT"
 	case *FieldMetaFloat:
 		return "REAL"
 	case *FieldMetaByte:

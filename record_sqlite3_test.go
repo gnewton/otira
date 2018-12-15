@@ -19,7 +19,7 @@ import (
 func TestNewPreparedStatement(t *testing.T) {
 	table, err := newDefaultTestTable(false)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	prep, err := table.CreatePreparedStatementInsertAllFields(new(DialectSqlite3))
@@ -75,7 +75,7 @@ func TestAddOneToManyRecordToMainRecordByRelationStringName_BadName(t *testing.T
 func TestTableCreate(t *testing.T) {
 	table, err := newDefaultTestTable(false)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	cr, err := table.createTableString(new(DialectSqlite3))
@@ -89,7 +89,7 @@ func TestTableCreate(t *testing.T) {
 func TestCreateTableSyntax(t *testing.T) {
 	table, err := newDefaultTestTable(false)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 	db, err := sql.Open("sqlite3", ":memory:")
 	if err != nil {
@@ -109,7 +109,7 @@ func TestCreateTableSyntax(t *testing.T) {
 func TestCreateTableSyntaxFail(t *testing.T) {
 	table, err := newDefaultTestTable(false)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 	db, err := sql.Open("sqlite3", ":memory:")
 	if err != nil {
@@ -129,36 +129,36 @@ func TestCreateTableSyntaxFail(t *testing.T) {
 func TestWriteRecordsFromTableMeta(t *testing.T) {
 	table, err := newDefaultTestTable(false)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 	//record, err := table.NewRecordSomeFields(table.fields[0], table.fields[1], table.fields[2])
 	record, err := table.NewRecord()
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 	record.validating = true
 
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 	err = record.Set(0, 42)
 	v, err := record.tableMeta.Next()
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 	err = record.Set(0, v)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	err = record.Set(1, "mm")
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	err = record.Set(2, 4.5)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	db, err := sql.Open("sqlite3", ":memory:")
@@ -201,18 +201,18 @@ func TestWriteRecordsFromTableMeta(t *testing.T) {
 func TestRecordFromTableMetaTODO(t *testing.T) {
 	table, err := newDefaultTestTable(false)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 	record, err := table.NewRecord()
 
 	err = record.Set(0, "mm")
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 	v := 44
 	err = record.Set(1, v)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 }
 
