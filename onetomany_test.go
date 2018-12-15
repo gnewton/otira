@@ -181,6 +181,7 @@ func TestVerifyOneToManyComplexSave(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+
 	err = pers.Save(addressRec1)
 	if err != nil {
 		t.Fatal(err)

@@ -11,11 +11,11 @@ type Counter interface {
 }
 
 type ICounter struct {
-	value uint64
+	counter uint64
 }
 
 func (c *ICounter) Next() (uint64, error) {
-	log.Println("Counter: " + toString(c.value))
-	atomic.AddUint64(&c.value, 1)
-	return c.value, nil
+	log.Println("Counter: " + toString(c.counter))
+	atomic.AddUint64(&c.counter, 1)
+	return c.counter, nil
 }

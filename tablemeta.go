@@ -22,14 +22,16 @@ type TableMeta struct {
 	discrimFields        []FieldMeta
 	useRecordPrimaryKeys bool
 	primaryKeyIndex      int
+	created              bool
 }
 
 func NewTableMeta(name string) (*TableMeta, error) {
 	t := new(TableMeta)
 	t.name = name
 	t.done = false
+	t.created = false
 	t.useRecordPrimaryKeys = false
-	t.value = 0
+	t.counter = 0
 
 	t.oneToMany = make([]*OneToMany, 0)
 	t.oneToManyMap = make(map[string]*OneToMany)

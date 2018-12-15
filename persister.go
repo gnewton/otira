@@ -92,6 +92,9 @@ func (pers *Persister) CreateTables(tms ...*TableMeta) error {
 
 	for i := 0; i < len(tms); i++ {
 		tm := tms[i]
+		if tm.created {
+			continue
+		}
 		createTableString, err := tm.createTableString(pers.dialect)
 		if err != nil {
 			return err
@@ -110,11 +113,30 @@ func (pers *Persister) CreateTables(tms ...*TableMeta) error {
 		if err != nil {
 			return err
 		}
+		tm.created = true
+		err = createRelationTables(tm)
+		if err != nil {
+			return err
+		}
 	}
 	pers.doneCreatingTables = true
 	err := pers.BeginTx()
 	return err
 
+}
+
+func createRelationTables(tm *TableMeta) error {
+	createOneToManyTables(tm)
+	createManyToManyTables(tm)
+	return nil
+}
+
+func createOneToManyTables(tm *TableMeta) error {
+	return nil
+}
+
+func createManyToManyTables(tm *TableMeta) error {
+	return nil
 }
 
 func exec(db *sql.DB, sql string) (sql.Result, error) {
@@ -261,7 +283,6 @@ func (pers *Persister) saveOneToMany(record *Record) error {
 		if one2m, ok := relation.(*OneToMany); ok {
 			log.Println(i)
 			log.Println("*****************")
-			//relRecordValueIndex, ok := relRecord.fieldsMap[record.tableMeta.PrimaryKey().Name()]
 			relRecordValueIndex, ok := relRecord.fieldsMap[one2m.rightKeyField.Name()]
 			if !ok {
 				return errors.New("Cannot find relation record primary key")
