@@ -25,7 +25,7 @@ func (jc *joinCache) GetJoinKey(r *Record) (uint64, bool, error) {
 		if r.tableMeta.useRecordPrimaryKeys {
 			pk, ok := r.values[0].(uint64)
 			if !ok {
-				return 0, false, errors.New("Primary key value is not uint64")
+				return 0, false, errors.New("Primary key value is not uint64; table=" + r.tableMeta.GetName())
 			} else {
 				joinKey = pk
 			}

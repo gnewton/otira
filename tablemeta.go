@@ -35,6 +35,8 @@ func NewTableMeta(name string) (*TableMeta, error) {
 
 	t.oneToMany = make([]*OneToMany, 0)
 	t.oneToManyMap = make(map[string]*OneToMany)
+	t.manyToMany = make([]*ManyToMany, 0)
+	t.manyToManyMap = make(map[string]*ManyToMany)
 	t.indexes = make([]*Index, 0)
 	t.fieldsMap = make(map[string]FieldMeta, 0)
 	t.fields = make([]FieldMeta, 0)
@@ -42,11 +44,39 @@ func NewTableMeta(name string) (*TableMeta, error) {
 	return t, nil
 }
 
-func (t *TableMeta) AddOneTomany(one2m *OneToMany) {
-	if t.oneToMany == nil {
-		t.oneToMany = make([]*OneToMany, 0)
-	}
+func (t *TableMeta) AddOneToMany(one2m *OneToMany) {
 	t.oneToMany = append(t.oneToMany, one2m)
+	t.oneToManyMap[one2m.name] = one2m
+}
+
+func (t *TableMeta) AddManyToMany(m2m *ManyToMany) {
+	t.manyToMany = append(t.manyToMany, m2m)
+	t.manyToManyMap[m2m.name] = m2m
+	makeM2MJoinTable(m2m)
+}
+
+func makeM2MJoinTable(m2m *ManyToMany) error {
+	joinTable, err := NewTableMeta(m2m.leftTable.name + "_" + m2m.rightTable.name)
+	if err != nil {
+		return err
+	}
+	m2m.joinTable = joinTable
+
+	left := new(FieldMetaUint64)
+	left.SetName(m2m.leftTable.name)
+	err = joinTable.Add(left)
+	if err != nil {
+		return err
+	}
+
+	right := new(FieldMetaUint64)
+	right.SetName(m2m.rightTable.name)
+	err = joinTable.Add(right)
+	if err != nil {
+		return err
+	}
+	err = joinTable.SetDone()
+	return err
 }
 
 func (t *TableMeta) PrimaryKey() FieldMeta {
@@ -67,7 +97,7 @@ func (t *TableMeta) GetOneToMany(k string) *OneToMany {
 
 }
 
-func (t *TableMeta) AddOneToMany(rel *OneToMany) error {
+func (t *TableMeta) AddOneToMany_OLD(rel *OneToMany) error {
 	if rel == nil {
 		return errors.New("OneToMany is nil")
 	}

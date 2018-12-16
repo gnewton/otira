@@ -30,7 +30,7 @@ func newOneToManyDefaultTables() (*TableMeta, *TableMeta, *OneToMany, error) {
 	one2m.rightKeyField = cityTable.PrimaryKey()
 	one2m.rightTableUniqueFields = []FieldMeta{cityField}
 
-	addressTable.AddOneTomany(one2m)
+	addressTable.AddOneToMany(one2m)
 	addressTable.SetDone()
 	return addressTable, cityTable, one2m, nil
 }
@@ -93,20 +93,21 @@ func makeCityTable() (*TableMeta, error) {
 	return cityTable, err
 }
 
-const City1PK = 42
+const City1PK = uint64(42)
 const City1Name = "New York"
 const City2PK = 73
 const City2Name = "Montreal"
 
-const Address1PK = 675
+const Address1PK = uint64(675)
 const Address1Street = "Main St."
+const Address2PK = uint64(88908)
 
-func makeCityRecord1(t *TableMeta) (*Record, error) {
+func makeCityRecord1(t *TableMeta, citypkvalue uint64) (*Record, error) {
 	rec, err := t.NewRecord()
 	if err != nil {
 		return nil, err
 	}
-	err = rec.SetByName(pk, City1PK)
+	err = rec.SetByName(pk, citypkvalue)
 	if err != nil {
 		return nil, err
 	}
@@ -135,12 +136,12 @@ func makeCityRecord2(t *TableMeta) (*Record, error) {
 	return rec, nil
 }
 
-func makeAddressRecord1(t *TableMeta) (*Record, error) {
+func makeAddressRecord1(t *TableMeta, addressPkValue uint64) (*Record, error) {
 	rec, err := t.NewRecord()
 	if err != nil {
 		return nil, err
 	}
-	err = rec.SetByName(pk, Address1PK)
+	err = rec.SetByName(pk, addressPkValue)
 	if err != nil {
 		return nil, err
 	}

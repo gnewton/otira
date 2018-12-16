@@ -135,10 +135,8 @@ func newOneToManyTestTable() (*TableMeta, *TableMeta, Relation, error) {
 
 	relation := new(OneToMany)
 	relation.name = ADDRESS
-	err = table.AddOneToMany(relation)
-	if err != nil {
-		return nil, nil, nil, err
-	}
+	table.AddOneToMany(relation)
+
 	relation.leftTable = table
 	relation.rightTable = address
 

@@ -95,29 +95,12 @@ func (pers *Persister) CreateTables(tms ...*TableMeta) error {
 		if tm.created {
 			continue
 		}
-		createTableString, err := tm.createTableString(pers.dialect)
+
+		err := pers.createTable(tm)
 		if err != nil {
 			return err
 		}
 
-		// Delete table
-		sql := pers.dialect.DropTableIfExists(tm)
-		log.Println(sql)
-		_, err = exec(pers.db, sql)
-		if err != nil {
-			return err
-		}
-		log.Println("createTableString=" + createTableString)
-		// Create the table in the db
-		_, err = exec(pers.db, createTableString)
-		if err != nil {
-			return err
-		}
-		tm.created = true
-		err = createRelationTables(tm)
-		if err != nil {
-			return err
-		}
 	}
 	pers.doneCreatingTables = true
 	err := pers.BeginTx()
@@ -125,17 +108,54 @@ func (pers *Persister) CreateTables(tms ...*TableMeta) error {
 
 }
 
-func createRelationTables(tm *TableMeta) error {
-	createOneToManyTables(tm)
-	createManyToManyTables(tm)
+func (pers *Persister) createTable(tm *TableMeta) error {
+	log.Println("createTable: " + tm.name)
+	createTableString, err := tm.createTableString(pers.dialect)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+
+	// Delete table
+	sql := pers.dialect.DropTableIfExists(tm)
+	log.Println(sql)
+	_, err = exec(pers.db, sql)
+	if err != nil {
+		return err
+	}
+	log.Println("createTableString=" + createTableString)
+	// Create the table in the db
+	_, err = exec(pers.db, createTableString)
+	if err != nil {
+		return err
+	}
+	tm.created = true
+	err = pers.createRelationTables(tm)
+	return err
+}
+
+func (pers *Persister) createRelationTables(tm *TableMeta) error {
+	pers.createOneToManyTables(tm)
+	err := pers.createManyToManyTables(tm)
+	return err
+}
+
+func (pers *Persister) createOneToManyTables(tm *TableMeta) error {
 	return nil
 }
 
-func createOneToManyTables(tm *TableMeta) error {
-	return nil
-}
-
-func createManyToManyTables(tm *TableMeta) error {
+func (pers *Persister) createManyToManyTables(tm *TableMeta) error {
+	log.Println("Create M2M")
+	log.Println(len(tm.manyToMany))
+	for i := 0; i < len(tm.manyToMany); i++ {
+		m2m := tm.manyToMany[i]
+		log.Println(m2m.leftTable.name, m2m.rightTable.name)
+		log.Println(m2m.joinTable)
+		err := pers.createTable(m2m.joinTable)
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -252,6 +272,8 @@ func (pers *Persister) preparedStatement(record *Record) (*sql.Stmt, error) {
 		}
 		pers.preparedStatements[record.tableMeta.name] = stmt
 		pers.preparedStrings[record.tableMeta.name] = preparedString
+	} else {
+		log.Println("Prepared statement cache hit")
 	}
 	return stmt, nil
 }
@@ -283,13 +305,21 @@ func (pers *Persister) saveOneToMany(record *Record) error {
 		if one2m, ok := relation.(*OneToMany); ok {
 			log.Println(i)
 			log.Println("*****************")
-			relRecordValueIndex, ok := relRecord.fieldsMap[one2m.rightKeyField.Name()]
-			if !ok {
-				return errors.New("Cannot find relation record primary key")
-			} else {
-				record.SetByName(one2m.leftKeyField.Name(), relRecord.values[relRecordValueIndex])
+			k2, exists, err := one2m.cache.GetJoinKey(relRecord)
+			if err != nil {
+				return err
 			}
-			pers.save(relRecord)
+			log.Println("cache", k2, exists)
+			//relRecordValueIndex, ok := relRecord.fieldsMap[one2m.rightKeyField.Name()]
+			//if !ok {
+			//return errors.New("Cannot find relation record primary key")
+			//} else {
+			//record.SetByName(one2m.leftKeyField.Name(), relRecord.values[relRecordValueIndex])
+			record.SetByName(one2m.leftKeyField.Name(), k2)
+			//}
+			if !exists {
+				pers.Save(relRecord)
+			}
 		}
 	}
 	return nil
