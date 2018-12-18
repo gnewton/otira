@@ -20,6 +20,66 @@ func TestManyToManyCreateJoinTable(t *testing.T) {
 	}
 }
 
+func TestManyToManyInsertSingleRecordWithNoRelationRecord(t *testing.T) {
+	pers, team, person, _, err := simpleManyToMany()
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = pers.CreateTables(team, person)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// TODO
+	t.Fatal(err)
+}
+
+func TestManyToManyInsertSingleRecordWithOneRelationRecord(t *testing.T) {
+	pers, team, person, _, err := simpleManyToMany()
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = pers.CreateTables(team, person)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// TODO
+	t.Fatal(err)
+}
+
+func TestManyToManyInsertTwoRecordsWithSameRelationRecord(t *testing.T) {
+	pers, team, person, _, err := simpleManyToMany()
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = pers.CreateTables(team, person)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// TODO
+	t.Fatal(err)
+}
+
+func TestManyToManyInsertTwoRecordsWithDifferentRelationRecord(t *testing.T) {
+	pers, team, person, _, err := simpleManyToMany()
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = pers.CreateTables(team, person)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// TODO
+	t.Fatal(err)
+}
+
 const TableNamePerson = "person"
 
 func simpleManyToMany() (*Persister, *TableMeta, *TableMeta, *ManyToMany, error) {
