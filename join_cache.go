@@ -2,6 +2,7 @@ package otira
 
 import (
 	"errors"
+	"log"
 )
 
 type joinCache struct {
@@ -38,6 +39,8 @@ func (jc *joinCache) GetJoinKey(r *Record) (uint64, bool, error) {
 			r.values[0] = joinKey
 		}
 		jc.joinKeys[cacheKey] = joinKey
+	} else {
+		log.Println("---> Cache hit")
 	}
 
 	return joinKey, exists, nil

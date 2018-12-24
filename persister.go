@@ -290,38 +290,96 @@ func (pers *Persister) Save(record *Record) error {
 
 func (pers *Persister) saveRelations(record *Record) error {
 	log.Println("saveRelations")
-	err := pers.saveOneToMany(record)
-	//saveManyToMany(record)
-	return err
-
-}
-
-func (pers *Persister) saveOneToMany(record *Record) error {
-	log.Println("saveOneToMany")
+	var err error
 	for i := 0; i < len(record.relationRecords); i++ {
 		relation := record.relationRecords[i].relation
 		relRecord := record.relationRecords[i].record
 		log.Println(relation)
-		if one2m, ok := relation.(*OneToMany); ok {
-			log.Println(i)
-			log.Println("*****************")
-			k2, exists, err := one2m.cache.GetJoinKey(relRecord)
+		switch rel := relation.(type) {
+		case *OneToMany:
+			err = pers.saveOneToMany(rel, record, relRecord)
 			if err != nil {
 				return err
 			}
-			log.Println("cache", k2, exists)
-			//relRecordValueIndex, ok := relRecord.fieldsMap[one2m.rightKeyField.Name()]
-			//if !ok {
-			//return errors.New("Cannot find relation record primary key")
-			//} else {
-			//record.SetByName(one2m.leftKeyField.Name(), relRecord.values[relRecordValueIndex])
-			record.SetByName(one2m.leftKeyField.Name(), k2)
-			//}
-			if !exists {
-				pers.Save(relRecord)
+		case *ManyToMany:
+			err = pers.saveManyToMany(rel, record, relRecord)
+			if err != nil {
+				return err
 			}
 		}
 	}
+	return err
+
+}
+
+func (pers *Persister) saveManyToMany(m2m *ManyToMany, record *Record, relRecord *Record) error {
+	log.Println("saveManyToMany")
+	log.Println(relRecord.values[0])
+
+	_, exists, err := m2m.cache.GetJoinKey(relRecord)
+	if err != nil {
+		return err
+	}
+
+	if !exists {
+		err := pers.Save(relRecord)
+		if err != nil {
+			return err
+		}
+	}
+	recordPk, ok := record.values[0].(uint64)
+	if !ok {
+		return errors.New("Record value is not a uint64")
+	}
+	relRecordPk, ok := relRecord.values[0].(uint64)
+	if !ok {
+		return errors.New("Relation record value is not a uint64")
+	}
+	err = pers.saveJoinRecord(m2m, recordPk, relRecordPk)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (pers *Persister) saveJoinRecord(m2m *ManyToMany, left, right uint64) error {
+
+	log.Println("Left and right values")
+	log.Println(left)
+	log.Println(right)
+	log.Println("M2M tablename=" + m2m.joinTable.name)
+	rec, err := m2m.joinTable.NewRecord()
+	if err != nil {
+		return err
+	}
+	rec.values[0] = left
+	rec.values[1] = right
+	err = pers.save(rec)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (pers *Persister) saveOneToMany(one2m *OneToMany, record *Record, relRecord *Record) error {
+	log.Println("saveOneToMany")
+
+	k2, exists, err := one2m.cache.GetJoinKey(relRecord)
+	if err != nil {
+		return err
+	}
+	log.Println("cache", k2, exists)
+	//relRecordValueIndex, ok := relRecord.fieldsMap[one2m.rightKeyField.Name()]
+	//if !ok {
+	//return errors.New("Cannot find relation record primary key")
+	//} else {
+	//record.SetByName(one2m.leftKeyField.Name(), relRecord.values[relRecordValueIndex])
+	record.SetByName(one2m.leftKeyField.Name(), k2)
+	//}
+	if !exists {
+		pers.Save(relRecord)
+	}
+
 	return nil
 }
 
@@ -343,8 +401,7 @@ func (pers *Persister) save(record *Record) error {
 	}
 
 	stmt, err := pers.preparedStatement(record)
-	log.Println("SAVE()")
-	//log.Println(record.Values())
+	log.Println("SAVE() saving record:")
 	log.Println(record.String())
 	if err != nil {
 		return err
@@ -358,11 +415,13 @@ func (pers *Persister) save(record *Record) error {
 	if err != nil {
 		return err
 	}
+	log.Println("lastInsertId:")
 	log.Println(lastInsertId)
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
 		return err
 	}
+	log.Println("rowsAffected:")
 	log.Println(rowsAffected)
 	return err
 }
