@@ -18,6 +18,10 @@ func TestManyToManyCreateJoinTable(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	err = pers.Done()
+	if err != nil {
+		t.Fatal(err)
+	}
 }
 
 func TestManyToManyInsertSingleRecordWithNoRelationRecord(t *testing.T) {
@@ -37,6 +41,10 @@ func TestManyToManyInsertSingleRecordWithNoRelationRecord(t *testing.T) {
 		t.Fatal(err)
 	}
 	err = pers.Save(teamRecord)
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = pers.Done()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -66,6 +74,10 @@ func TestManyToManyInsertSingleRecordWithOneRelationRecord(t *testing.T) {
 	}
 
 	err = pers.Save(teamRecord)
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = pers.Done()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -113,6 +125,10 @@ func TestManyToManyInsertTwoRecordsWithSameRelationRecord(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	err = pers.Done()
+	if err != nil {
+		t.Fatal(err)
+	}
 }
 
 func TestManyToManyInsertOneRecordWithTwoRelationRecords(t *testing.T) {
@@ -155,6 +171,61 @@ func TestManyToManyInsertOneRecordWithTwoRelationRecords(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	err = pers.Done()
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestManyToManyInsertManyRecordsWithTwoRelationRecords(t *testing.T) {
+	pers, team, person, m2m, err := simpleManyToMany()
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = pers.CreateTables(team, person)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	personRecord1, err := makePersonRecord(person, uint64(2), "Bill Smith")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for i := 11; i < 1000; i++ {
+
+		q := toString(i)
+		teamRecord, err := makeTeamRecord(team, uint64(i), "Leafs_"+q)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		teamRecord.AddRelationRecord(m2m, personRecord1)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		personRecord2, err := makePersonRecord(person, uint64(i*30000), "Bobby Orr"+q)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		teamRecord.AddRelationRecord(m2m, personRecord2)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		err = pers.Save(teamRecord)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+	err = pers.Done()
+	if err != nil {
+		t.Fatal(err)
+	}
 }
 
 func TestManyToManyInsertTwoRecordsWithDifferentRelationRecord(t *testing.T) {
@@ -170,12 +241,17 @@ func TestManyToManyInsertTwoRecordsWithDifferentRelationRecord(t *testing.T) {
 	}
 	// TODO
 	//t.Fatal(err)
+	err = pers.Done()
+	if err != nil {
+		t.Fatal(err)
+	}
 }
 
 const TableNamePerson = "person"
 
 func simpleManyToMany() (*Persister, *TableMeta, *TableMeta, *ManyToMany, error) {
-	db, err := sql.Open("sqlite3", ":memory:")
+	//db, err := sql.Open("sqlite3", ":memory:")
+	db, err := sql.Open("sqlite3", "db.sqlite3")
 
 	if err != nil {
 		return nil, nil, nil, nil, err
@@ -234,6 +310,8 @@ func makePersonTable() (*TableMeta, error) {
 	if err != nil {
 		return nil, err
 	}
+	personTable.SetDiscrimFields(nameField)
+
 	personTable.SetDone()
 
 	return personTable, nil

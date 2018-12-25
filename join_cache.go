@@ -40,7 +40,7 @@ func (jc *joinCache) GetJoinKey(r *Record) (uint64, bool, error) {
 		}
 		jc.joinKeys[cacheKey] = joinKey
 	} else {
-		log.Println("---> Cache hit")
+		log.Println("---> Cache hit:[" + cacheKey + "]")
 	}
 
 	return joinKey, exists, nil
@@ -57,6 +57,12 @@ func makeKey(r *Record) (string, error) {
 
 	flen := len(r.fields)
 	dflen := len(r.tableMeta.discrimFields)
+
+	if dflen == 0 {
+		return "", errors.New("No discrim fields for table:" + r.tableMeta.name)
+
+	}
+
 	for i, _ := range r.tableMeta.discrimFields {
 		fm := r.tableMeta.discrimFields[i]
 		j, ok := r.fieldsMap[fm.Name()]
@@ -75,6 +81,10 @@ func makeKey(r *Record) (string, error) {
 			keyString += "_" + toString(r.values[j]) + "|"
 		}
 	}
+	if keyString == "" {
+		return "", errors.New("key cache is empty string")
+	}
+
 	return keyString, nil
 
 }

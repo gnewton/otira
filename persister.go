@@ -183,7 +183,11 @@ func (pers *Persister) BeginTx() error {
 
 func (pers *Persister) commit() error {
 	log.Println("=============================END TX")
-	return pers.tx.Commit()
+	pers.saveMutex.Lock()
+	defer pers.saveMutex.Unlock()
+	err := pers.tx.Commit()
+	pers.tx = nil
+	return err
 }
 
 func (pers *Persister) Done() error {
@@ -208,7 +212,6 @@ func (pers *Persister) prepareRelationRecords(record *Record) ([]*Record, error)
 			relationRecords = append(relationRecords, pers.prepareOneToManyRecord(record, rr.record, v)...)
 		case *ManyToMany:
 			relationRecords = append(relationRecords, pers.prepareManyToManyRecord(record, rr.record, v)...)
-			log.Println(v.String())
 		}
 	}
 	return relationRecords, nil
@@ -265,7 +268,6 @@ func (pers *Persister) preparedStatement(record *Record) (*sql.Stmt, error) {
 			log.Println("*******************  pers.tx is nil")
 			return nil, errors.New("pers.tx is nil")
 		}
-		log.Println("preparedString=[" + preparedString + "]")
 		stmt, err = pers.tx.Prepare(preparedString)
 		if err != nil {
 			return nil, err
@@ -289,12 +291,10 @@ func (pers *Persister) Save(record *Record) error {
 }
 
 func (pers *Persister) saveRelations(record *Record) error {
-	log.Println("saveRelations")
 	var err error
 	for i := 0; i < len(record.relationRecords); i++ {
 		relation := record.relationRecords[i].relation
 		relRecord := record.relationRecords[i].record
-		log.Println(relation)
 		switch rel := relation.(type) {
 		case *OneToMany:
 			err = pers.saveOneToMany(rel, record, relRecord)
@@ -313,9 +313,6 @@ func (pers *Persister) saveRelations(record *Record) error {
 }
 
 func (pers *Persister) saveManyToMany(m2m *ManyToMany, record *Record, relRecord *Record) error {
-	log.Println("saveManyToMany")
-	log.Println(relRecord.values[0])
-
 	_, exists, err := m2m.cache.GetJoinKey(relRecord)
 	if err != nil {
 		return err
@@ -344,10 +341,6 @@ func (pers *Persister) saveManyToMany(m2m *ManyToMany, record *Record, relRecord
 
 func (pers *Persister) saveJoinRecord(m2m *ManyToMany, left, right uint64) error {
 
-	log.Println("Left and right values")
-	log.Println(left)
-	log.Println(right)
-	log.Println("M2M tablename=" + m2m.joinTable.name)
 	rec, err := m2m.joinTable.NewRecord()
 	if err != nil {
 		return err
@@ -362,13 +355,10 @@ func (pers *Persister) saveJoinRecord(m2m *ManyToMany, left, right uint64) error
 }
 
 func (pers *Persister) saveOneToMany(one2m *OneToMany, record *Record, relRecord *Record) error {
-	log.Println("saveOneToMany")
-
 	k2, exists, err := one2m.cache.GetJoinKey(relRecord)
 	if err != nil {
 		return err
 	}
-	log.Println("cache", k2, exists)
 	//relRecordValueIndex, ok := relRecord.fieldsMap[one2m.rightKeyField.Name()]
 	//if !ok {
 	//return errors.New("Cannot find relation record primary key")
@@ -385,8 +375,6 @@ func (pers *Persister) saveOneToMany(one2m *OneToMany, record *Record, relRecord
 
 // Saves single record
 func (pers *Persister) save(record *Record) error {
-	pers.saveMutex.Lock()
-	defer pers.saveMutex.Unlock()
 
 	if pers.transactionCounter > pers.TransactionSize {
 		err := pers.commit()
@@ -398,7 +386,10 @@ func (pers *Persister) save(record *Record) error {
 			return err
 		}
 		pers.preparedStatements = make(map[string]*sql.Stmt, 0)
+		log.Println("End TX; start new TX")
+		pers.transactionCounter = 0
 	}
+	pers.transactionCounter++
 
 	stmt, err := pers.preparedStatement(record)
 	log.Println("SAVE() saving record:")
@@ -406,23 +397,26 @@ func (pers *Persister) save(record *Record) error {
 	if err != nil {
 		return err
 	}
+	pers.saveMutex.Lock()
+
 	result, err := execStatement(stmt, record.Values())
 	if err != nil {
 		log.Println(err)
+		log.Println(record.values[0])
 		return err
 	}
-	lastInsertId, err := result.LastInsertId()
-	if err != nil {
-		return err
-	}
-	log.Println("lastInsertId:")
-	log.Println(lastInsertId)
+	pers.saveMutex.Unlock()
+	// lastInsertId, err := result.LastInsertId()
+	// if err != nil {
+	// 	return err
+	// }
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
 		return err
 	}
-	log.Println("rowsAffected:")
-	log.Println(rowsAffected)
+	if rowsAffected != 1 {
+		return errors.New("Wrong number of rows effected by single insert...")
+	}
 	return err
 }
 

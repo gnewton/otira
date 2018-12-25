@@ -3,7 +3,7 @@ package otira
 import (
 	"database/sql"
 	"errors"
-	"log"
+	///"log"
 	"strconv"
 )
 
@@ -86,9 +86,6 @@ func newRecord(tm *TableMeta, fields []FieldMeta, stmt *sql.Stmt) (*Record, erro
 }
 
 func (r *Record) AddRelationRecord(rel Relation, record *Record) error {
-	log.Println("AddRelationRecord")
-	log.Println(rel)
-	log.Println(record)
 	if rel == nil {
 		return errors.New("Relation is nil")
 	}
@@ -102,16 +99,14 @@ func (r *Record) AddRelationRecord(rel Relation, record *Record) error {
 	relationRecord.relation = rel
 	r.relationRecords = append(r.relationRecords, relationRecord)
 	// TODO
-	switch v := rel.(type) {
-	case *OneToMany:
-		log.Println("===== " + v.String())
 
-	case *ManyToMany:
-		log.Println(v.String())
-	}
-	log.Println(r.relationRecords[0].record)
-	log.Println(r.relationRecords[0].relation)
-	log.Println("END AddRelationRecord")
+	// switch v := rel.(type) {
+	// case *OneToMany:
+	// 	log.Println("===== " + v.String())
+
+	// case *ManyToMany:
+	// 	log.Println(v.String())
+	// }
 	return nil
 }
 
