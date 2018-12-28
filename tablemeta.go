@@ -8,21 +8,22 @@ import (
 //Assumes 0th field is primary key, type FieldMetaUint64
 type TableMeta struct {
 	ICounter
-	name                 string
+	UseRecordPrimaryKeys bool
+	created              bool
+	discrimFields        []FieldMeta
+	done                 bool
 	fields               []FieldMeta
 	fieldsMap            map[string]FieldMeta
+	indexes              []*Index
 	inited               bool
-	primaryKey           FieldMeta
-	oneToMany            []*OneToMany
-	oneToManyMap         map[string]*OneToMany
 	manyToMany           []*ManyToMany
 	manyToManyMap        map[string]*ManyToMany
-	indexes              []*Index
-	done                 bool
-	discrimFields        []FieldMeta
-	UseRecordPrimaryKeys bool
+	name                 string
+	oneToMany            []*OneToMany
+	oneToManyMap         map[string]*OneToMany
+	primaryKey           FieldMeta
 	primaryKeyIndex      int
-	created              bool
+	validating           bool
 }
 
 func NewTableMeta(name string) (*TableMeta, error) {
@@ -32,6 +33,7 @@ func NewTableMeta(name string) (*TableMeta, error) {
 	t.created = false
 	t.UseRecordPrimaryKeys = false
 	t.counter = 0
+	t.validating = true
 
 	t.oneToMany = make([]*OneToMany, 0)
 	t.oneToManyMap = make(map[string]*OneToMany)

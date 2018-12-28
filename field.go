@@ -19,7 +19,7 @@ func (f *Field) SetValue(v interface{}) error {
 	f.field = v
 	f.hasSetValue = true
 	if !f.fieldMeta.IsSameType(v) {
-		return errors.New("Incorrect type")
+		return errors.New("Incorrect type:" + toString(v))
 	}
 	return nil
 }

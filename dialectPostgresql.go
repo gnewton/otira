@@ -59,10 +59,10 @@ func (d *DialectPostgresql) DropTableIfExistsString(tableName string) (string, e
 	return "", errors.New("TODO")
 }
 
-func (d *DialectPostgresql) ExistsString(table string, id uint64) (bool, error) {
-	return false, errors.New("TODO")
+func (d *DialectPostgresql) ExistsString(table, field string, id uint64) (string, error) {
+	return "", errors.New("TODO")
 }
 
-func (d *DialectPostgresql) ExistsDeepString(*Record) (bool, error) {
-	return false, errors.New("TODO")
+func (d *DialectPostgresql) ExistsDeepString(*Record) (string, error) {
+	return "", errors.New("TODO")
 }

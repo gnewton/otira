@@ -2,6 +2,7 @@ package otira
 
 import (
 	"database/sql"
+	"errors"
 	_ "github.com/mattn/go-sqlite3"
 	"testing"
 )
@@ -46,20 +47,30 @@ func TestPersistFewRecords(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	for i := 0; i < 100; i++ {
+	var i uint64
+	base := uint64(100000)
+	for i = 0; i < 100; i++ {
 		//t.Log(i)
 		rec, err := table.NewRecord()
 		if err != nil {
 			t.Fatal(err)
 		}
 		populateDefaultTableRecord(rec)
-		err = rec.SetByName(pk, 1000000+i)
+		err = rec.SetByName(pk, base+i)
+		//err = rec.SetByName(pk, "foo")
 		if err != nil {
 			t.Fatal(err)
 		}
 		err = pers.save(rec)
 		if err != nil {
 			t.Fatal(err)
+		}
+		exists, err := pers.Exists(rec)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !exists {
+			t.Fatal(errors.New("Should exist"))
 		}
 	}
 

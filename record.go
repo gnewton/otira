@@ -3,22 +3,21 @@ package otira
 import (
 	"database/sql"
 	"errors"
-	///"log"
+	"log"
 	"strconv"
 )
 
 type Record struct {
-	values     []interface{}
-	valueIsSet []bool
-	tableMeta  *TableMeta
-	fields     []FieldMeta
-	fieldsMap  map[string]int
 	//fieldsMap       map[string]FieldMeta
-	validating      bool
-	tx              *sql.Tx
-	stmt            *sql.Stmt
+	fields          []FieldMeta
+	fieldsMap       map[string]int
 	preparedString  string
 	relationRecords []*RelationRecord
+	stmt            *sql.Stmt
+	tableMeta       *TableMeta
+	tx              *sql.Tx
+	valueIsSet      []bool
+	values          []interface{}
 }
 
 type RelationRecord struct {
@@ -138,11 +137,15 @@ func (r *Record) SetByName(f string, v interface{}) error {
 }
 
 func (r *Record) Set(i int, v interface{}) error {
+
 	if i < 0 || i > len(r.values) {
 		return errors.New("Index out of bounds. Should be 0.." + strconv.Itoa(len(r.values)) + "; Actual: " + strconv.Itoa(i))
 	}
-	if r.validating {
+	if r.tableMeta.validating {
 		if !r.fields[i].IsSameType(v) {
+			log.Println(i)
+			log.Println(v)
+			log.Println(r.tableMeta.fields[i].Name())
 			return errors.New("Incorrect type")
 		}
 	}
@@ -151,8 +154,15 @@ func (r *Record) Set(i int, v interface{}) error {
 	return nil
 }
 
-func (r *Record) PrimaryKeyValue() uint64 {
-	return 0
+func (r *Record) PrimaryKeyValue() (uint64, error) {
+	switch v := r.values[0].(type) {
+	case uint64:
+		return v, nil
+	}
+	log.Println("+++++++++++")
+	log.Println(r.values[0])
+	log.Println("+++++++++++")
+	return 0, errors.New("Primary key is not uint64")
 }
 
 func (r *Record) String() string {

@@ -52,7 +52,7 @@ func newDefaultTestTable(singleDiscrimField bool) (*TableMeta, error) {
 		return nil, err
 	}
 
-	f5 := new(FieldMetaInt)
+	f5 := new(FieldMetaString)
 	f5.SetName(tAddress)
 	err = table.Add(f5)
 	if err != nil {
@@ -81,13 +81,12 @@ func populateDefaultTableRecord(rec *Record) error {
 		return err
 	}
 
-	err = rec.SetByName(f_birth, "10.9")
+	err = rec.SetByName(f_birth, 10.9)
 	if err != nil {
 		return err
 	}
 
 	err = rec.SetByName(pk, DefaultPID)
-	//err = rec.SetByName(pk, 999999)
 	if err != nil {
 		return err
 	}

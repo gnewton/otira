@@ -96,7 +96,7 @@ func makeCityTable() (*TableMeta, error) {
 
 const City1PK = uint64(42)
 const City1Name = "New York"
-const City2PK = 73
+const City2PK = uint64(73)
 const City2Name = "Montreal"
 
 const Address1PK = uint64(675)

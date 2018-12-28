@@ -439,6 +439,30 @@ func (pers *Persister) CreatePreparedStatementInsertFromRecord(record *Record) (
 	return pers.CreatePreparedStatementInsertSomeFields(record.tableMeta.name, fields...)
 }
 
+func (pers *Persister) Exists(r *Record) (bool, error) {
+	pkValue, err := r.PrimaryKeyValue()
+	if err != nil {
+		return false, err
+	}
+
+	s, err := pers.dialect.ExistsString(r.tableMeta.name, r.tableMeta.fields[0].Name(), pkValue)
+	if err != nil {
+		return false, err
+	}
+
+	stmt, err := pers.tx.Prepare(s)
+	if err != nil {
+		return false, err
+	}
+	var count int
+	err = stmt.QueryRow().Scan(&count)
+	if err != nil {
+		return false, err
+	}
+
+	return count > 0, nil
+}
+
 func (pers *Persister) CreatePreparedStatementInsertSomeFields(tablename string, fields ...FieldMeta) (string, error) {
 	st := "INSERT INTO " + tablename + " ("
 	values := "("

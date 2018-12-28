@@ -6,14 +6,14 @@ import (
 )
 
 type FieldMetaImpl struct {
-	name       string
-	table      *TableMeta
-	length     int
-	unique     bool
+	fixed      bool
 	indexed    bool
+	length     int
+	name       string
 	nullable   bool
 	primaryKey bool
-	fixed      bool
+	table      *TableMeta
+	unique     bool
 	//Table(*Table)
 }
 
@@ -108,7 +108,6 @@ type FieldMetaUint64 struct {
 
 func (fm *FieldMetaUint64) IsSameType(v interface{}) bool {
 	_, ok := v.(uint64)
-	_, ok = v.(uint64)
 	if ok {
 		return true
 	}

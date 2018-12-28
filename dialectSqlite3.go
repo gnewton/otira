@@ -139,16 +139,16 @@ func (d *DialectSqlite3) Pragmas() []string {
 	return sqlite3DefaultPragmas
 }
 
-func (d *DialectSqlite3) ExistsString(table string, id uint64) (bool, error) {
+func (d *DialectSqlite3) ExistsString(table, field string, id uint64) (string, error) {
 	if table == "" {
-		return false, errors.New("table name is empty")
+		return "", errors.New("table name is empty")
 	}
-	return false, errors.New("TODO")
+	return SELECT + SPC + COUNT + "(" + field + ")" + SPC + FROM + SPC + table + SPC + WHERE + SPC + field + EQUALS + toString(id), nil
 }
 
-func (d *DialectSqlite3) ExistsDeepString(r *Record) (bool, error) {
+func (d *DialectSqlite3) ExistsDeepString(r *Record) (string, error) {
 	if r == nil {
-		return false, errors.New("Record is nil")
+		return "", errors.New("Record is nil")
 	}
-	return false, errors.New("TODO")
+	return "", errors.New("TODO")
 }

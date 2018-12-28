@@ -136,12 +136,11 @@ func TestWriteRecordsFromTableMeta(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	record.validating = true
 
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = record.Set(0, 42)
+	err = record.Set(0, uint64(42))
 	v, err := record.tableMeta.Next()
 	if err != nil {
 		t.Fatal(err)
@@ -205,11 +204,11 @@ func TestRecordFromTableMetaTODO(t *testing.T) {
 	}
 	record, err := table.NewRecord()
 
-	err = record.Set(0, "mm")
+	err = record.Set(0, uint64(23))
 	if err != nil {
 		t.Fatal(err)
 	}
-	v := 44
+	v := "foobar"
 	err = record.Set(1, v)
 	if err != nil {
 		t.Fatal(err)

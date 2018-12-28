@@ -10,6 +10,11 @@ const SPC = " "
 const PRIMARY_KEY = "PRIMARY_KEY"
 const INSERT = "INSERT INTO "
 const VALUES = "VALUES"
+const SELECT = "SELECT"
+const WHERE = "WHERE"
+const FROM = "FROM"
+const COUNT = "COUNT"
+const EQUALS = "="
 
 // From: http://go-database-sql.org/prepared.html
 // MySQL               PostgreSQL            Oracle
@@ -52,8 +57,8 @@ type Dialect interface {
 	Constraints(FieldMeta) (string, error)
 	CreateTableString(t *TableMeta) (string, error)
 	DropTableIfExistsString(tableName string) (string, error)
-	ExistsString(table string, id uint64) (bool, error)
-	ExistsDeepString(*Record) (bool, error)
+	ExistsString(table, field string, id uint64) (string, error)
+	ExistsDeepString(*Record) (string, error)
 	FieldType(FieldMeta) (string, error)
 	ForeignKeys(t *TableMeta) (string, error)
 	Pragmas() []string
