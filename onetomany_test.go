@@ -154,7 +154,7 @@ func TestVerifySimpleOneToManyInsert_FailMissingCity(t *testing.T) {
 
 func TestVerifyOneToManyComplexSaveJoinCache(t *testing.T) {
 	pers, address, city, one2m, err := simpleOneToMany()
-	city.useRecordPrimaryKeys = true
+	city.UseRecordPrimaryKeys = true
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -195,7 +195,7 @@ func TestVerifyOneToManyComplexSaveJoinCache(t *testing.T) {
 
 func TestVerifyOneToManyComplexSave(t *testing.T) {
 	pers, address, city, one2m, err := simpleOneToMany()
-	city.useRecordPrimaryKeys = true
+	city.UseRecordPrimaryKeys = true
 	if err != nil {
 		t.Fatal(err)
 	}

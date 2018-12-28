@@ -23,7 +23,7 @@ func (jc *joinCache) GetJoinKey(r *Record) (uint64, bool, error) {
 	joinKey, exists := jc.joinKeys[cacheKey]
 	if !exists {
 		// New record: Get the next primary key for the table
-		if r.tableMeta.useRecordPrimaryKeys {
+		if r.tableMeta.UseRecordPrimaryKeys {
 			pk, ok := r.values[0].(uint64)
 			if !ok {
 				return 0, false, errors.New("Primary key value is not uint64; table=" + r.tableMeta.GetName())

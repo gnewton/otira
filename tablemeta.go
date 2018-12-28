@@ -20,7 +20,7 @@ type TableMeta struct {
 	indexes              []*Index
 	done                 bool
 	discrimFields        []FieldMeta
-	useRecordPrimaryKeys bool
+	UseRecordPrimaryKeys bool
 	primaryKeyIndex      int
 	created              bool
 }
@@ -30,7 +30,7 @@ func NewTableMeta(name string) (*TableMeta, error) {
 	t.name = name
 	t.done = false
 	t.created = false
-	t.useRecordPrimaryKeys = false
+	t.UseRecordPrimaryKeys = false
 	t.counter = 0
 
 	t.oneToMany = make([]*OneToMany, 0)
@@ -169,7 +169,7 @@ func (t *TableMeta) NewRecordSomeFields(fields ...FieldMeta) (*Record, error) {
 		return nil, err
 	}
 	//log.Println("fields", fields)
-	if !t.useRecordPrimaryKeys {
+	if !t.UseRecordPrimaryKeys {
 		pk, err := t.Next()
 		if err != nil {
 			return nil, err
@@ -271,7 +271,11 @@ func (t *TableMeta) CreatePreparedStatementInsertSomeFields(dialect Dialect, fie
 			values += ", "
 		}
 		st += fields[i].Name()
-		values += preparedValueFormat(dialect, i)
+		preparedValueFormat, err := preparedValueFormat(dialect, i)
+		if err != nil {
+			return "", err
+		}
+		values += preparedValueFormat
 	}
 
 	st += ")"

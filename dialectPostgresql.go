@@ -1,6 +1,7 @@
 package otira
 
 import (
+	"errors"
 	"log"
 	"strconv"
 )
@@ -9,24 +10,41 @@ type DialectPostgresql struct {
 }
 
 func (d *DialectPostgresql) CreateTableString(t *TableMeta) (string, error) {
+	if t == nil {
+		return "", errors.New("TableMeta is nil")
+	}
+
 	log.Println("TODO")
-	return "TODO", nil
+	return "", errors.New("TODO")
 }
 
-func (d *DialectPostgresql) PreparedValueFormat(counter int) string {
-	return "$" + strconv.Itoa(counter+1)
+func (d *DialectPostgresql) PreparedValueFormat(counter int) (string, error) {
+	if counter < 0 {
+		return "", errors.New("counter is <1")
+	}
+	return "$" + strconv.Itoa(counter+1), nil
 }
 
-func (d *DialectPostgresql) FieldType(FieldMeta) string {
-	return "TODO"
+func (d *DialectPostgresql) FieldType(fm FieldMeta) (string, error) {
+	if fm == nil {
+		return "", errors.New("FieldMeta is nil")
+	}
+	return "", errors.New("TODO")
 }
 
-func (d *DialectPostgresql) Constraints(fm FieldMeta) string {
-	return "TODO"
+func (d *DialectPostgresql) Constraints(fm FieldMeta) (string, error) {
+	if fm == nil {
+		return "", errors.New("FieldMeta is nil")
+	}
+	return "", errors.New("TODO")
 }
 
-func (d *DialectPostgresql) ForeignKeys(t *TableMeta) string {
-	return "TODO"
+func (d *DialectPostgresql) ForeignKeys(t *TableMeta) (string, error) {
+	if t == nil {
+		return "", errors.New("TableMeta is nil")
+	}
+	return "", errors.New("TODO")
+
 }
 
 //TODO
@@ -37,6 +55,14 @@ func (d *DialectPostgresql) Pragmas() []string {
 }
 
 //TODO
-func (d *DialectPostgresql) DropTableIfExists(tm *TableMeta) string {
-	return "TODO"
+func (d *DialectPostgresql) DropTableIfExistsString(tableName string) (string, error) {
+	return "", errors.New("TODO")
+}
+
+func (d *DialectPostgresql) ExistsString(table string, id uint64) (bool, error) {
+	return false, errors.New("TODO")
+}
+
+func (d *DialectPostgresql) ExistsDeepString(*Record) (bool, error) {
+	return false, errors.New("TODO")
 }

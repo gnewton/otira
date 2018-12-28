@@ -31,8 +31,11 @@ func NewDialectSqlite3(pragmas []string, overwriteDefaultPragmas bool) Dialect {
 	return new(DialectSqlite3)
 }
 
-func (d *DialectSqlite3) DropTableIfExists(tm *TableMeta) string {
-	return "DROP TABLE IF EXISTS " + tm.name
+func (d *DialectSqlite3) DropTableIfExistsString(tableName string) (string, error) {
+	if tableName == "" {
+		return "", errors.New("Tablename is empty")
+	}
+	return "DROP TABLE IF EXISTS " + tableName, nil
 }
 
 func (d *DialectSqlite3) CreateTableString(t *TableMeta) (string, error) {
@@ -45,22 +48,37 @@ func (d *DialectSqlite3) CreateTableString(t *TableMeta) (string, error) {
 		if i != 0 {
 			s += ", "
 		}
-		s += fm.Name() + " " + d.FieldType(fm)
+		fieldType, err := d.FieldType(fm)
+		if err != nil {
+			return "", err
+		}
+		s += fm.Name() + " " + fieldType
 		if fm == t.primaryKey {
 			s += SPC + PRIMARY_KEY
 		}
-		s += d.Constraints(fm)
+		constraints, err := d.Constraints(fm)
+		if err != nil {
+			return "", err
+		}
+		s += constraints
 	}
-	s += d.ForeignKeys(t)
+	foreignKeys, err := d.ForeignKeys(t)
+	if err != nil {
+		return "", err
+	}
+	s += foreignKeys
 	s += ")"
 	return s, nil
 }
 
-func (d *DialectSqlite3) ForeignKeys(t *TableMeta) string {
+func (d *DialectSqlite3) ForeignKeys(t *TableMeta) (string, error) {
+	if t == nil {
+		return "", errors.New("TableMeta is nil")
+	}
 	var s string
 	s += d.oneToManyForeignKeys(t)
 
-	return s
+	return s, nil
 }
 
 func (d *DialectSqlite3) oneToManyForeignKeys(t *TableMeta) string {
@@ -77,17 +95,20 @@ func (d *DialectSqlite3) oneToManyForeignKeys(t *TableMeta) string {
 	return s
 }
 
-func (d *DialectSqlite3) Constraints(fm FieldMeta) string {
-	//if fm.PrimaryKey() {
-	//return " PRIMARY KEY"
-	//}
-	if fm.Unique() {
-		return " UNIQUE"
+func (d *DialectSqlite3) Constraints(fm FieldMeta) (string, error) {
+	if fm == nil {
+		return "", errors.New("FieldMeta is nil")
 	}
-	return ""
+	if fm.Unique() {
+		return " UNIQUE", nil
+	}
+	return "", nil
 }
 
-func (d *DialectSqlite3) FieldType(fm FieldMeta) string {
+func (d *DialectSqlite3) FieldType(fm FieldMeta) (string, error) {
+	if fm == nil {
+		return "", errors.New("FieldMeta is nil")
+	}
 	switch v := fm.(type) {
 	case *FieldMetaString:
 		s := ""
@@ -96,25 +117,38 @@ func (d *DialectSqlite3) FieldType(fm FieldMeta) string {
 		} else {
 			s += "VARCHAR"
 		}
-		s += "(" + strconv.Itoa(fm.Length()) + ")"
-		return s
+		s += "(" + strconv.Itoa(v.Length()) + ")"
+		return s, nil
 	case *FieldMetaInt, *FieldMetaUint64:
-		return "UNSIGNED BIG INT"
+		return "UNSIGNED BIG INT", nil
 	case *FieldMetaFloat:
-		return "REAL"
+		return "REAL", nil
 	case *FieldMetaByte:
-		return "BLOB"
+		return "BLOB", nil
 	default:
-		log.Println("Unknown type", v)
-		return "ERROR-UNKNOWN"
+		return "", errors.New("Unknown type")
 	}
 
 }
 
-func (d *DialectSqlite3) PreparedValueFormat(counter int) string {
-	return "?"
+func (d *DialectSqlite3) PreparedValueFormat(counter int) (string, error) {
+	return "?", nil
 }
 
 func (d *DialectSqlite3) Pragmas() []string {
 	return sqlite3DefaultPragmas
+}
+
+func (d *DialectSqlite3) ExistsString(table string, id uint64) (bool, error) {
+	if table == "" {
+		return false, errors.New("table name is empty")
+	}
+	return false, errors.New("TODO")
+}
+
+func (d *DialectSqlite3) ExistsDeepString(r *Record) (bool, error) {
+	if r == nil {
+		return false, errors.New("Record is nil")
+	}
+	return false, errors.New("TODO")
 }

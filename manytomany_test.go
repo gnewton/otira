@@ -293,7 +293,7 @@ func makePersonTable() (*TableMeta, error) {
 	if err != nil {
 		return nil, err
 	}
-	personTable.useRecordPrimaryKeys = true
+	personTable.UseRecordPrimaryKeys = true
 	id := new(FieldMetaUint64)
 	id.SetName(pk)
 	id.SetUnique(true)

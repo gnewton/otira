@@ -1,7 +1,8 @@
 package otira
 
 import (
-//"strconv"
+	//"strconv"
+	"errors"
 )
 
 const CREATE_TABLE = "CREATE TABLE"
@@ -19,8 +20,17 @@ const VALUES = "VALUES"
 // From: https://www.sqlite.org/lang_expr.html#varparam
 // ?		A question mark ...
 
-func preparedValueFormat(dialect Dialect, counter int) string {
-	return dialect.PreparedValueFormat(counter)
+func preparedValueFormat(dialect Dialect, counter int) (string, error) {
+	if dialect == nil {
+		return "", errors.New("Dialect is nil")
+	}
+
+	format, err := dialect.PreparedValueFormat(counter)
+	if err != nil {
+		return "", err
+	}
+
+	return format, nil
 
 	// case ORACLE:
 	// 	return ":val" + strconv.Itoa(counter+1)
@@ -39,11 +49,13 @@ func createTableString(dialect Dialect, t *TableMeta) {
 }
 
 type Dialect interface {
+	Constraints(FieldMeta) (string, error)
 	CreateTableString(t *TableMeta) (string, error)
-	PreparedValueFormat(counter int) string
-	FieldType(FieldMeta) string
-	Constraints(FieldMeta) string
-	ForeignKeys(t *TableMeta) string
+	DropTableIfExistsString(tableName string) (string, error)
+	ExistsString(table string, id uint64) (bool, error)
+	ExistsDeepString(*Record) (bool, error)
+	FieldType(FieldMeta) (string, error)
+	ForeignKeys(t *TableMeta) (string, error)
 	Pragmas() []string
-	DropTableIfExists(*TableMeta) string
+	PreparedValueFormat(counter int) (string, error)
 }

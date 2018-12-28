@@ -46,7 +46,7 @@ func NewPersister(db *sql.DB, dialect Dialect) (*Persister, error) {
 	}
 
 	pers.initPragmas()
-	pers.TransactionSize = 500
+	pers.TransactionSize = 50000
 
 	//err = pers.beginTx()
 	pers.preparedStatements = make(map[string]*sql.Stmt, 0)
@@ -117,7 +117,10 @@ func (pers *Persister) createTable(tm *TableMeta) error {
 	}
 
 	// Delete table
-	sql := pers.dialect.DropTableIfExists(tm)
+	sql, err := pers.dialect.DropTableIfExistsString(tm.name)
+	if err != nil {
+		return err
+	}
 	log.Println(sql)
 	_, err = exec(pers.db, sql)
 	if err != nil {
@@ -250,7 +253,7 @@ func (pers *Persister) preparedString(record *Record) (string, error) {
 		}
 		pers.preparedStrings[record.tableMeta.name] = preparedString
 	} else {
-		log.Println("cached")
+		//log.Println("cached")
 	}
 	return preparedString, nil
 }
@@ -275,7 +278,7 @@ func (pers *Persister) preparedStatement(record *Record) (*sql.Stmt, error) {
 		pers.preparedStatements[record.tableMeta.name] = stmt
 		pers.preparedStrings[record.tableMeta.name] = preparedString
 	} else {
-		log.Println("Prepared statement cache hit")
+		//log.Println("Prepared statement cache hit")
 	}
 	return stmt, nil
 }
@@ -392,8 +395,8 @@ func (pers *Persister) save(record *Record) error {
 	pers.transactionCounter++
 
 	stmt, err := pers.preparedStatement(record)
-	log.Println("SAVE() saving record:")
-	log.Println(record.String())
+	//log.Println("SAVE() saving record:")
+	//log.Println(record.String())
 	if err != nil {
 		return err
 	}
@@ -445,7 +448,11 @@ func (pers *Persister) CreatePreparedStatementInsertSomeFields(tablename string,
 			values += ", "
 		}
 		st += fields[i].Name()
-		values += preparedValueFormat(pers.dialect, i)
+		preparedValueFormat, err := preparedValueFormat(pers.dialect, i)
+		if err != nil {
+			return "", err
+		}
+		values += preparedValueFormat
 	}
 
 	st += ")"

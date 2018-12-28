@@ -89,6 +89,7 @@ func makeCityTable() (*TableMeta, error) {
 	if err != nil {
 		return nil, err
 	}
+	cityTable.SetDiscrimFields(nameField)
 	cityTable.SetDone()
 	return cityTable, err
 }

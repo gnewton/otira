@@ -95,7 +95,7 @@ func TestJoinCacheDuplicate(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	table.useRecordPrimaryKeys = true
+	table.UseRecordPrimaryKeys = true
 	table.SetDone()
 	rec, err := table.NewRecord()
 	if err != nil {
