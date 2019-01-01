@@ -131,7 +131,7 @@ func TestManyToManyInsertTwoRecordsWithSameRelationRecord(t *testing.T) {
 	}
 }
 
-func TestManyToManyInsertOneRecordWithTwoRelationRecords(t *testing.T) {
+func TestManyToManyInsertOneRecordWithTwoDifferentRelationRecords(t *testing.T) {
 	pers, team, person, m2m, err := simpleManyToMany()
 
 	if err != nil {
@@ -250,8 +250,8 @@ func TestManyToManyInsertTwoRecordsWithDifferentRelationRecord(t *testing.T) {
 const TableNamePerson = "person"
 
 func simpleManyToMany() (*Persister, *TableMeta, *TableMeta, *ManyToMany, error) {
-	//db, err := sql.Open("sqlite3", ":memory:")
-	db, err := sql.Open("sqlite3", "db.sqlite3")
+	db, err := sql.Open("sqlite3", ":memory:")
+	//db, err := sql.Open("sqlite3", "db.sqlite3")
 
 	if err != nil {
 		return nil, nil, nil, nil, err
@@ -310,7 +310,7 @@ func makePersonTable() (*TableMeta, error) {
 	if err != nil {
 		return nil, err
 	}
-	personTable.SetDiscrimFields(nameField)
+	personTable.SetJoinDiscrimFields(nameField)
 
 	personTable.SetDone()
 

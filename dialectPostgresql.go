@@ -29,6 +29,7 @@ func (d *DialectPostgresql) FieldType(fm FieldMeta) (string, error) {
 	if fm == nil {
 		return "", errors.New("FieldMeta is nil")
 	}
+	log.Println("TODO")
 	return "", errors.New("TODO")
 }
 
@@ -36,6 +37,7 @@ func (d *DialectPostgresql) Constraints(fm FieldMeta) (string, error) {
 	if fm == nil {
 		return "", errors.New("FieldMeta is nil")
 	}
+	log.Println("TODO")
 	return "", errors.New("TODO")
 }
 
@@ -43,6 +45,7 @@ func (d *DialectPostgresql) ForeignKeys(t *TableMeta) (string, error) {
 	if t == nil {
 		return "", errors.New("TableMeta is nil")
 	}
+	log.Println("TODO")
 	return "", errors.New("TODO")
 
 }
@@ -56,13 +59,21 @@ func (d *DialectPostgresql) Pragmas() []string {
 
 //TODO
 func (d *DialectPostgresql) DropTableIfExistsString(tableName string) (string, error) {
+	log.Println("TODO")
 	return "", errors.New("TODO")
 }
 
 func (d *DialectPostgresql) ExistsString(table, field string, id uint64) (string, error) {
+	log.Println("TODO")
 	return "", errors.New("TODO")
 }
 
 func (d *DialectPostgresql) ExistsDeepString(*Record) (string, error) {
+	log.Println("TODO")
+	return "", errors.New("TODO")
+}
+
+func (d *DialectPostgresql) UpdateString(rec *Record) (string, error) {
+	log.Println("TODO")
 	return "", errors.New("TODO")
 }

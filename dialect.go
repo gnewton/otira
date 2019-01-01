@@ -15,6 +15,9 @@ const WHERE = "WHERE"
 const FROM = "FROM"
 const COUNT = "COUNT"
 const EQUALS = "="
+const UPDATE = "UPDATE"
+const SET = "SET"
+const COMMA = ","
 
 // From: http://go-database-sql.org/prepared.html
 // MySQL               PostgreSQL            Oracle
@@ -63,4 +66,5 @@ type Dialect interface {
 	ForeignKeys(t *TableMeta) (string, error)
 	Pragmas() []string
 	PreparedValueFormat(counter int) (string, error)
+	UpdateString(*Record) (string, error)
 }

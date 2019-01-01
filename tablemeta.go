@@ -10,12 +10,13 @@ type TableMeta struct {
 	ICounter
 	UseRecordPrimaryKeys bool
 	created              bool
-	discrimFields        []FieldMeta
 	done                 bool
 	fields               []FieldMeta
 	fieldsMap            map[string]FieldMeta
 	indexes              []*Index
+	isJoinTable          bool
 	inited               bool
+	joinDiscrimFields    []FieldMeta
 	manyToMany           []*ManyToMany
 	manyToManyMap        map[string]*ManyToMany
 	name                 string
@@ -24,6 +25,7 @@ type TableMeta struct {
 	primaryKey           FieldMeta
 	primaryKeyIndex      int
 	validating           bool
+	writeCache           Set
 }
 
 func NewTableMeta(name string) (*TableMeta, error) {
@@ -34,6 +36,7 @@ func NewTableMeta(name string) (*TableMeta, error) {
 	t.UseRecordPrimaryKeys = false
 	t.counter = 0
 	t.validating = true
+	t.isJoinTable = false
 
 	t.oneToMany = make([]*OneToMany, 0)
 	t.oneToManyMap = make(map[string]*OneToMany)
@@ -42,6 +45,11 @@ func NewTableMeta(name string) (*TableMeta, error) {
 	t.indexes = make([]*Index, 0)
 	t.fieldsMap = make(map[string]FieldMeta, 0)
 	t.fields = make([]FieldMeta, 0)
+	var err error
+	t.writeCache, err = NewBadgerSet("./foom")
+	if err != nil {
+		return nil, err
+	}
 
 	return t, nil
 }
@@ -62,6 +70,7 @@ func makeM2MJoinTable(m2m *ManyToMany) error {
 	if err != nil {
 		return err
 	}
+	joinTable.isJoinTable = true
 	m2m.joinTable = joinTable
 
 	left := new(FieldMetaUint64)
@@ -85,8 +94,8 @@ func (t *TableMeta) PrimaryKey() FieldMeta {
 	return t.fields[0]
 }
 
-func (t *TableMeta) SetDiscrimFields(fields ...FieldMeta) {
-	t.discrimFields = fields
+func (t *TableMeta) SetJoinDiscrimFields(fields ...FieldMeta) {
+	t.joinDiscrimFields = fields
 }
 
 func (t *TableMeta) GetOneToMany(k string) *OneToMany {

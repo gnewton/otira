@@ -29,6 +29,7 @@ func (otm *OneToMany) String() string {
 type ManyToMany struct {
 	baseRelation
 	joinTable *TableMeta
+	pkCache   map[string]struct{}
 }
 
 func (mtm *ManyToMany) String() string {

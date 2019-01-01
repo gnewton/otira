@@ -184,7 +184,7 @@ func TestWriteRecordsFromTableMeta(t *testing.T) {
 	}
 	for i := 100; i < 201; i++ {
 		record.Reset()
-		record.Set(0, i)
+		record.Set(0, uint64(i))
 		err = pers.save(record)
 		if err != nil {
 			t.Log(i)

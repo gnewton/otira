@@ -9,18 +9,17 @@ import (
 
 type Persister struct {
 	TransactionSize    int
-	transactionCounter int
-	dialect            Dialect
+	createMutex        sync.Mutex
 	db                 *sql.DB
-	tx                 *sql.Tx
+	dialect            Dialect
+	doneCreatingTables bool
 	preparedStatements map[string]*sql.Stmt
 	preparedStrings    map[string]string
-
 	relationPKCacheMap map[Relation]map[string]int64
-
 	saveMutex          sync.Mutex
-	createMutex        sync.Mutex
-	doneCreatingTables bool
+	transactionCounter int
+	tx                 *sql.Tx
+	SupportUpdates     bool
 }
 
 // needs to also have
@@ -46,9 +45,8 @@ func NewPersister(db *sql.DB, dialect Dialect) (*Persister, error) {
 	}
 
 	pers.initPragmas()
-	pers.TransactionSize = 50000
+	pers.TransactionSize = 500000
 
-	//err = pers.beginTx()
 	pers.preparedStatements = make(map[string]*sql.Stmt, 0)
 	pers.preparedStrings = make(map[string]string, 0)
 	pers.relationPKCacheMap = make(map[Relation]map[string]int64)
@@ -188,9 +186,32 @@ func (pers *Persister) commit() error {
 	log.Println("=============================END TX")
 	pers.saveMutex.Lock()
 	defer pers.saveMutex.Unlock()
-	err := pers.tx.Commit()
+	err := pers.closePreparedStatements()
+	if err != nil {
+		return err
+	}
+
+	err = pers.tx.Commit()
+	if err != nil {
+		return err
+	}
 	pers.tx = nil
 	return err
+}
+
+func (pers *Persister) closePreparedStatements() error {
+	for _, stmt := range pers.preparedStatements {
+		if stmt == nil {
+			return errors.New("Prepared statement should not be nil")
+		}
+		log.Println("Closing")
+		log.Println(stmt)
+		err := stmt.Close()
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (pers *Persister) Done() error {
@@ -283,14 +304,49 @@ func (pers *Persister) preparedStatement(record *Record) (*sql.Stmt, error) {
 	return stmt, nil
 }
 
-// saves record and all related records
-func (pers *Persister) Save(record *Record) error {
-	err := pers.saveRelations(record)
+func (pers *Persister) commitAndBeginTx() error {
+	err := pers.commit()
 	if err != nil {
 		return err
 	}
-	err = pers.save(record)
-	return err
+	err = pers.BeginTx()
+	if err != nil {
+		return err
+	}
+	pers.preparedStatements = make(map[string]*sql.Stmt, 0)
+	log.Println("End TX; start new TX")
+	pers.transactionCounter = 0
+
+	return nil
+}
+
+// saves record and all related records
+func (pers *Persister) Save(rec *Record) error {
+	// update, err := pers.isUpdate(rec)
+	// if err != nil {
+	// 	return err
+	// }
+	// if update {
+	// 	return pers.Update(rec)
+	// }
+
+	err := pers.saveRelations(rec)
+	if err != nil {
+		return err
+	}
+
+	err = pers.save(rec)
+	if err != nil {
+		return err
+	}
+	if pers.transactionCounter > pers.TransactionSize {
+		err = pers.commitAndBeginTx()
+		if err != nil {
+			return err
+		}
+
+	}
+	return nil
 }
 
 func (pers *Persister) saveRelations(record *Record) error {
@@ -300,6 +356,7 @@ func (pers *Persister) saveRelations(record *Record) error {
 		relRecord := record.relationRecords[i].record
 		switch rel := relation.(type) {
 		case *OneToMany:
+
 			err = pers.saveOneToMany(rel, record, relRecord)
 			if err != nil {
 				return err
@@ -371,41 +428,39 @@ func (pers *Persister) saveOneToMany(one2m *OneToMany, record *Record, relRecord
 	//}
 	if !exists {
 		pers.Save(relRecord)
+
 	}
 
 	return nil
 }
 
 // Saves single record
-func (pers *Persister) save(record *Record) error {
+func (pers *Persister) save(rec *Record) error {
 
-	if pers.transactionCounter > pers.TransactionSize {
-		err := pers.commit()
-		if err != nil {
-			return err
-		}
-		err = pers.BeginTx()
-		if err != nil {
-			return err
-		}
-		pers.preparedStatements = make(map[string]*sql.Stmt, 0)
-		log.Println("End TX; start new TX")
-		pers.transactionCounter = 0
-	}
 	pers.transactionCounter++
 
-	stmt, err := pers.preparedStatement(record)
-	//log.Println("SAVE() saving record:")
-	//log.Println(record.String())
+	stmt, err := pers.preparedStatement(rec)
 	if err != nil {
 		return err
 	}
 	pers.saveMutex.Lock()
 
-	result, err := execStatement(stmt, record.Values())
+	if pers.SupportUpdates {
+		pk, err := rec.PrimaryKeyValue()
+		if err != nil {
+			return err
+		}
+		err = rec.tableMeta.writeCache.Put(pk)
+		if err != nil {
+			return err
+		}
+	}
+
+	result, err := execStatement(stmt, rec.Values())
 	if err != nil {
 		log.Println(err)
-		log.Println(record.values[0])
+		log.Println(rec.values[0])
+		log.Println(rec.tableMeta.name)
 		return err
 	}
 	pers.saveMutex.Unlock()
@@ -484,4 +539,52 @@ func (pers *Persister) CreatePreparedStatementInsertSomeFields(tablename string,
 
 	st = st + " VALUES " + values
 	return st, nil
+}
+
+func (pers *Persister) isUpdate(rec *Record) (bool, error) {
+	log.Println("isUpdte")
+	if !pers.SupportUpdates {
+		return false, nil
+	}
+
+	pk, err := rec.PrimaryKeyValue()
+	if err != nil {
+		return false, err
+	}
+	log.Println("Writing")
+	log.Println(pk)
+
+	ok, err := rec.tableMeta.writeCache.Contains(pk)
+	if ok {
+		return true, nil
+	}
+	return false, nil
+}
+
+func (pers *Persister) Update(rec *Record) error {
+	//TODO
+	// - updateRelations
+	// - updateRecord
+	return pers.update(rec)
+}
+
+func (pers *Persister) update(rec *Record) error {
+	log.Println("TODO")
+	updateString, err := pers.dialect.UpdateString(rec)
+	if err != nil {
+		return err
+	}
+	log.Println(updateString)
+
+	stmt, err := pers.tx.Prepare(updateString)
+	if err != nil {
+		return err
+	}
+	log.Println(stmt)
+	_, err = execStatement(stmt, rec.values)
+
+	if err != nil {
+		return err
+	}
+	return nil
 }

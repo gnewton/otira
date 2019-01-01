@@ -1,9 +1,9 @@
 package otira
 
 import (
-	//"log"
 	"database/sql"
 	_ "github.com/mattn/go-sqlite3"
+	"log"
 	"testing"
 )
 
@@ -111,19 +111,8 @@ func TestVerifysDeepOneToManyInsert(t *testing.T) {
 }
 
 func TestVerifySimpleOneToManyInsert_FailMissingCity(t *testing.T) {
+	log.Println("M$$$$$$$$$$$$$$$$$$$$$$$$$$")
 	pers, addressTable, city, _, err := simpleOneToMany()
-	// defer func() {
-	// 	err := pers.Commit()
-	// 	if err != nil {
-	// 		t.Fatal(err)
-	// 	}
-	// 	err = pers.Done()
-	// 	if err != nil {
-	// 		t.Fatal(err)
-	// 	}
-
-	// }()
-
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -143,11 +132,16 @@ func TestVerifySimpleOneToManyInsert_FailMissingCity(t *testing.T) {
 	}
 
 	addressRec1, err := makeAddressRecord1(addressTable, Address1PK)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	err = pers.save(addressRec1)
-	// Should fail due to foreign key constraints
+
 	if err == nil {
 		t.Fatal(err)
 	} else {
+		// Should cause Forign Key constraint failure
 		t.Log(err)
 	}
 }
@@ -188,6 +182,9 @@ func TestVerifyOneToManyComplexSaveJoinCache(t *testing.T) {
 	}
 
 	err = pers.Save(addressRec2)
+	if err != nil {
+		t.Fatal(err)
+	}
 	////
 
 	defer pers.Done()

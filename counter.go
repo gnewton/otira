@@ -1,7 +1,6 @@
 package otira
 
 import (
-	"log"
 	"sync/atomic"
 )
 
@@ -15,7 +14,6 @@ type ICounter struct {
 }
 
 func (c *ICounter) Next() (uint64, error) {
-	log.Println("Counter: " + toString(c.counter))
 	atomic.AddUint64(&c.counter, 1)
 	return c.counter, nil
 }

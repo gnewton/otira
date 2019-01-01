@@ -2,7 +2,7 @@ package otira
 
 import (
 	"errors"
-	"log"
+	//	"log"
 )
 
 type joinCache struct {
@@ -40,7 +40,7 @@ func (jc *joinCache) GetJoinKey(r *Record) (uint64, bool, error) {
 		}
 		jc.joinKeys[cacheKey] = joinKey
 	} else {
-		log.Println("---> Cache hit:[" + cacheKey + "]")
+		//log.Println("---> Cache hit:[" + cacheKey + "]")
 	}
 
 	return joinKey, exists, nil
@@ -56,15 +56,15 @@ func makeKey(r *Record) (string, error) {
 	var keyString string
 
 	flen := len(r.fields)
-	dflen := len(r.tableMeta.discrimFields)
+	dflen := len(r.tableMeta.joinDiscrimFields)
 
 	if dflen == 0 {
 		return "", errors.New("No discrim fields for table:" + r.tableMeta.name)
 
 	}
 
-	for i, _ := range r.tableMeta.discrimFields {
-		fm := r.tableMeta.discrimFields[i]
+	for i, _ := range r.tableMeta.joinDiscrimFields {
+		fm := r.tableMeta.joinDiscrimFields[i]
 		j, ok := r.fieldsMap[fm.Name()]
 		if !ok {
 			return "", errors.New("Field name [" + fm.Name() + "] is not a field in table " + r.tableMeta.GetName())

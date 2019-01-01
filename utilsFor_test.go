@@ -60,9 +60,9 @@ func newDefaultTestTable(singleDiscrimField bool) (*TableMeta, error) {
 	}
 
 	if singleDiscrimField {
-		table.SetDiscrimFields(f0)
+		table.SetJoinDiscrimFields(f0)
 	} else {
-		table.SetDiscrimFields(f0, f1, f2)
+		table.SetJoinDiscrimFields(f0, f1, f2)
 	}
 
 	table.SetDone()

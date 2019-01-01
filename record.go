@@ -143,9 +143,6 @@ func (r *Record) Set(i int, v interface{}) error {
 	}
 	if r.tableMeta.validating {
 		if !r.fields[i].IsSameType(v) {
-			log.Println(i)
-			log.Println(v)
-			log.Println(r.tableMeta.fields[i].Name())
 			return errors.New("Incorrect type")
 		}
 	}

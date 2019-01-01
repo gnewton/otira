@@ -150,5 +150,43 @@ func (d *DialectSqlite3) ExistsDeepString(r *Record) (string, error) {
 	if r == nil {
 		return "", errors.New("Record is nil")
 	}
+	log.Println("TODO")
 	return "", errors.New("TODO")
+}
+
+func (d *DialectSqlite3) UpdateString(rec *Record) (string, error) {
+	if rec == nil {
+		return "", errors.New("record is nil")
+	}
+	pk, err := rec.PrimaryKeyValue()
+	if err != nil {
+		return "", err
+	}
+
+	updateValueString, err := d.updateValuesString(rec.fields)
+	if err != nil {
+		return "", err
+	}
+	updateString := UPDATE + SPC + rec.tableMeta.name + SPC + updateValueString + SPC + WHERE + SPC + rec.fields[0].Name() + EQUALS + toString(pk)
+	if rec.tableMeta.isJoinTable {
+		updateString += rec.fields[1].Name() + EQUALS + toString(rec.values[1])
+	}
+	return updateString, nil
+}
+
+func (d *DialectSqlite3) updateValuesString(fields []FieldMeta) (string, error) {
+	if fields == nil {
+		return "", errors.New("Fields is nil")
+	}
+	s := SET + SPC
+
+	preparedValueFormat, _ := d.PreparedValueFormat(1)
+
+	for i := 0; i < len(fields); i++ {
+		if i != 0 {
+			s += COMMA
+		}
+		s += fields[i].Name() + EQUALS + preparedValueFormat
+	}
+	return s, nil
 }
