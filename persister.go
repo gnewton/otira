@@ -121,6 +121,7 @@ func (pers *Persister) createTable(tm *TableDef) error {
 	}
 
 	createTableString, err := tm.createTableString(pers.dialect)
+	log.Println("CREATE::::::::: " + createTableString)
 	if err != nil {
 		log.Println(err)
 		return err
@@ -358,6 +359,7 @@ func (pers *Persister) Save(rec *Record) error {
 	if err != nil {
 		return err
 	}
+
 	if pers.transactionCounter > pers.TransactionSize {
 		err = pers.commitAndBeginTx()
 		if err != nil {
@@ -462,16 +464,19 @@ func (pers *Persister) save(rec *Record) error {
 	if err != nil {
 		return err
 	}
+
 	pers.saveMutex.Lock()
+	defer pers.saveMutex.Unlock()
+
 	if pers.SupportUpdates {
-		pk, err := rec.PrimaryKeyValue()
-		if err != nil {
-			return err
-		}
-		err = rec.tableDef.writeCache.Put(pk)
-		if err != nil {
-			return err
-		}
+		// pk, err := rec.PrimaryKeyValue()
+		// if err != nil {
+		// 	return err
+		// }
+		// err = rec.tableDef.writeCache.Put(pk)
+		// if err != nil {
+		// 	return err
+		// }
 	}
 
 	result, err := execStatement(stmt, rec.Values())
@@ -491,7 +496,7 @@ func (pers *Persister) save(rec *Record) error {
 			return err
 		}
 	}
-	pers.saveMutex.Unlock()
+
 	// lastInsertId, err := result.LastInsertId()
 	// if err != nil {
 	// 	return err
@@ -515,7 +520,7 @@ func (pers *Persister) CreatePreparedStatementInsertFromRecord(record *Record) (
 	if record == nil {
 		return "", errors.New("Record cannot be nil")
 	}
-	fields := make([]FieldMeta, 0)
+	fields := make([]FieldDef, 0)
 	for i, _ := range record.values {
 		fields = append(fields, record.tableDef.fields[i])
 	}
@@ -546,7 +551,7 @@ func (pers *Persister) Exists(r *Record) (bool, error) {
 	return count > 0, nil
 }
 
-func (pers *Persister) CreatePreparedStatementInsertSomeFields(tablename string, fields ...FieldMeta) (string, error) {
+func (pers *Persister) CreatePreparedStatementInsertSomeFields(tablename string, fields ...FieldDef) (string, error) {
 	st := "INSERT INTO " + tablename + " ("
 	values := "("
 	for i, _ := range fields {
@@ -582,10 +587,10 @@ func (pers *Persister) isUpdate(rec *Record) (bool, error) {
 	log.Println("Writing")
 	log.Println(pk)
 
-	ok, err := rec.tableDef.writeCache.Contains(pk)
-	if ok {
-		return true, nil
-	}
+	// ok, err := rec.tableDef.writeCache.Contains(pk)
+	// if ok {
+	// 	return true, nil
+	// }
 	return false, nil
 }
 
@@ -611,6 +616,7 @@ func (pers *Persister) update(rec *Record) error {
 	log.Println(stmt)
 	_, err = execStatement(stmt, rec.values)
 
+	log.Println("DONE")
 	if err != nil {
 		return err
 	}

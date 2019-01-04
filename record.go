@@ -8,8 +8,8 @@ import (
 )
 
 type Record struct {
-	//fieldsMap       map[string]FieldMeta
-	fields          []FieldMeta
+	//fieldsMap       map[string]FieldDef
+	fields          []FieldDef
 	fieldsMap       map[string]int
 	preparedString  string
 	relationRecords []*RelationRecord
@@ -54,7 +54,7 @@ func (r *Record) Values() []interface{} {
 	return r.values
 }
 
-func newRecord(tm *TableDef, fields []FieldMeta, stmt *sql.Stmt) (*Record, error) {
+func newRecord(tm *TableDef, fields []FieldDef, stmt *sql.Stmt) (*Record, error) {
 	if tm == nil {
 		return nil, errors.New("TableDef is nil")
 	}

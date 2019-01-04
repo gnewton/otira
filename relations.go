@@ -8,9 +8,9 @@ type baseRelation struct {
 	name                   string
 	leftTable              *TableDef
 	rightTable             *TableDef
-	rightTableUniqueFields []FieldMeta // fields to find out if a record exists; these fields are used in a lookup
-	leftKeyField           FieldMeta
-	rightKeyField          FieldMeta
+	rightTableUniqueFields []FieldDef // fields to find out if a record exists; these fields are used in a lookup
+	leftKeyField           FieldDef
+	rightKeyField          FieldDef
 	cache                  *joinCache
 }
 

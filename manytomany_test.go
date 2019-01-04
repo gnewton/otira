@@ -166,11 +166,12 @@ func TestManyToManyInsertOneRecordWithTwoDifferentRelationRecords(t *testing.T) 
 	if err != nil {
 		t.Fatal(err)
 	}
-
+	t.Log("A1")
 	err = pers.Save(teamRecord)
 	if err != nil {
 		t.Fatal(err)
 	}
+	t.Log("A2")
 	err = pers.Done()
 	if err != nil {
 		t.Fatal(err)
@@ -294,7 +295,7 @@ func makePersonTable() (*TableDef, error) {
 		return nil, err
 	}
 	personTable.UseRecordPrimaryKeys = true
-	id := new(FieldMetaUint64)
+	id := new(FieldDefUint64)
 	id.SetName(pk)
 	id.SetUnique(true)
 	err = personTable.Add(id)
@@ -302,7 +303,7 @@ func makePersonTable() (*TableDef, error) {
 		return nil, err
 	}
 
-	nameField := new(FieldMetaString)
+	nameField := new(FieldDefString)
 	nameField.SetName(NAME)
 	nameField.SetFixed(true)
 	nameField.SetLength(24)
@@ -340,7 +341,7 @@ func makeTeamTable() (*TableDef, error) {
 	if err != nil {
 		return nil, err
 	}
-	id := new(FieldMetaUint64)
+	id := new(FieldDefUint64)
 	id.SetName(pk)
 	id.SetUnique(true)
 	err = teamTable.Add(id)
@@ -348,7 +349,7 @@ func makeTeamTable() (*TableDef, error) {
 		return nil, err
 	}
 
-	nameField := new(FieldMetaString)
+	nameField := new(FieldDefString)
 	nameField.SetName(TeamNameField)
 	nameField.SetFixed(true)
 	nameField.SetLength(24)

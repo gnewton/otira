@@ -158,8 +158,8 @@ func TestNoDialectFail(t *testing.T) {
 }
 
 func TestPersistPragmas(t *testing.T) {
-	//db, err := sql.Open("sqlite3", ":memory:")
-	db, err := sql.Open("sqlite3", "foo.db")
+	db, err := sql.Open("sqlite3", ":memory:")
+	//db, err := sql.Open("sqlite3", "foo.db")
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -41,7 +41,7 @@ func (d *DialectSqlite3) DropTableIfExistsString(tableName string) (string, erro
 
 func (d *DialectSqlite3) CreateTableString(t *TableDef) (string, error) {
 	if t == nil {
-		return "", errors.New("Tablemeta is nil")
+		return "", errors.New("TableDef is nil")
 	}
 	s := CREATE_TABLE + SPC + t.name + " ("
 
@@ -54,10 +54,10 @@ func (d *DialectSqlite3) CreateTableString(t *TableDef) (string, error) {
 			return "", err
 		}
 		s += fm.Name() + " " + fieldType
-		if fm == t.primaryKey {
+		if i == 0 {
 			s += SPC + PRIMARY_KEY
 		}
-		constraints, err := d.Constraints(fm)
+		constraints, err := d.Constraints(fm, i == 0)
 		if err != nil {
 			return "", err
 		}
@@ -96,22 +96,22 @@ func (d *DialectSqlite3) oneToManyForeignKeys(t *TableDef) string {
 	return s
 }
 
-func (d *DialectSqlite3) Constraints(fm FieldMeta) (string, error) {
+func (d *DialectSqlite3) Constraints(fm FieldDef, primaryKey bool) (string, error) {
 	if fm == nil {
-		return "", errors.New("FieldMeta is nil")
+		return "", errors.New("FieldDef is nil")
 	}
-	if fm.Unique() {
+	if !primaryKey && fm.Unique() {
 		return " UNIQUE", nil
 	}
 	return "", nil
 }
 
-func (d *DialectSqlite3) FieldType(fm FieldMeta) (string, error) {
+func (d *DialectSqlite3) FieldType(fm FieldDef) (string, error) {
 	if fm == nil {
-		return "", errors.New("FieldMeta is nil")
+		return "", errors.New("FieldDef is nil")
 	}
 	switch v := fm.(type) {
-	case *FieldMetaString:
+	case *FieldDefString:
 		s := ""
 		if fm.Fixed() {
 			s += "CHAR"
@@ -120,11 +120,11 @@ func (d *DialectSqlite3) FieldType(fm FieldMeta) (string, error) {
 		}
 		s += "(" + strconv.Itoa(v.Length()) + ")"
 		return s, nil
-	case *FieldMetaInt, *FieldMetaUint64:
+	case *FieldDefInt, *FieldDefUint64:
 		return "UNSIGNED BIG INT", nil
-	case *FieldMetaFloat:
+	case *FieldDefFloat:
 		return "REAL", nil
-	case *FieldMetaByte:
+	case *FieldDefByte:
 		return "BLOB", nil
 	default:
 		return "", errors.New("Unknown type")
@@ -170,12 +170,12 @@ func (d *DialectSqlite3) UpdateString(rec *Record) (string, error) {
 	}
 	updateString := UPDATE + SPC + rec.tableDef.name + SPC + updateValueString + SPC + WHERE + SPC + rec.fields[0].Name() + EQUALS + toString(pk)
 	if rec.tableDef.isJoinTable {
-		updateString += rec.fields[1].Name() + EQUALS + toString(rec.values[1])
+		updateString += SPC + AND + SPC + rec.fields[1].Name() + EQUALS + toString(rec.values[1])
 	}
 	return updateString, nil
 }
 
-func (d *DialectSqlite3) updateValuesString(fields []FieldMeta) (string, error) {
+func (d *DialectSqlite3) updateValuesString(fields []FieldDef) (string, error) {
 	if fields == nil {
 		return "", errors.New("Fields is nil")
 	}
@@ -194,4 +194,30 @@ func (d *DialectSqlite3) updateValuesString(fields []FieldMeta) (string, error) 
 
 func (d *DialectSqlite3) IsUniqueContraintFailedError(err error) bool {
 	return strings.HasPrefix(err.Error(), "UNIQUE constraint failed:")
+}
+
+func (d *DialectSqlite3) CreateIndexString(name string, tableName string, fieldNames []string) (string, error) {
+	if name == "" {
+		return "", errors.New("Empty index name")
+	}
+
+	if tableName == "" {
+		return "", errors.New("Empty index table name")
+	}
+
+	if fieldNames == nil {
+		return "", errors.New("Index field names is nil")
+	}
+
+	if len(fieldNames) == 0 {
+		return "", errors.New("Index field names is zero length")
+	}
+
+	for i := 0; i < len(fieldNames); i++ {
+		if fieldNames[i] == "" {
+			return "", errors.New("Index field name[" + toString(i) + "] is zero length")
+		}
+	}
+
+	return "", errors.New("TODO")
 }

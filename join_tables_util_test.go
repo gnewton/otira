@@ -28,7 +28,7 @@ func newOneToManyDefaultTables() (*TableDef, *TableDef, *OneToMany, error) {
 	}
 	one2m.leftKeyField = cityField
 	one2m.rightKeyField = cityTable.PrimaryKey()
-	one2m.rightTableUniqueFields = []FieldMeta{cityField}
+	one2m.rightTableUniqueFields = []FieldDef{cityField}
 
 	addressTable.AddOneToMany(one2m)
 	addressTable.SetDone()
@@ -41,7 +41,7 @@ func makeAddressTable() (*TableDef, error) {
 		return nil, err
 	}
 
-	id := new(FieldMetaUint64)
+	id := new(FieldDefUint64)
 	id.SetName(pk)
 	id.SetUnique(true)
 	err = addressTable.Add(id)
@@ -49,7 +49,7 @@ func makeAddressTable() (*TableDef, error) {
 		return nil, err
 	}
 
-	streetField := new(FieldMetaString)
+	streetField := new(FieldDefString)
 	streetField.SetName(STREET)
 	streetField.SetFixed(true)
 	streetField.SetLength(24)
@@ -58,7 +58,7 @@ func makeAddressTable() (*TableDef, error) {
 		return nil, err
 	}
 
-	cityField := new(FieldMetaInt)
+	cityField := new(FieldDefInt)
 	cityField.SetName(CITYFK)
 	err = addressTable.Add(cityField)
 	if err != nil {
@@ -73,7 +73,7 @@ func makeCityTable() (*TableDef, error) {
 	if err != nil {
 		return nil, err
 	}
-	id := new(FieldMetaUint64)
+	id := new(FieldDefUint64)
 	id.SetName(pk)
 	id.SetUnique(true)
 	err = cityTable.Add(id)
@@ -81,7 +81,7 @@ func makeCityTable() (*TableDef, error) {
 		return nil, err
 	}
 
-	nameField := new(FieldMetaString)
+	nameField := new(FieldDefString)
 	nameField.SetName(NAME)
 	nameField.SetFixed(true)
 	nameField.SetLength(24)

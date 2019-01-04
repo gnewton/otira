@@ -12,7 +12,7 @@ func newDefaultTestTable(singleDiscrimField bool) (*TableDef, error) {
 		return nil, err
 	}
 
-	f0 := new(FieldMetaUint64)
+	f0 := new(FieldDefUint64)
 	f0.SetName(pk)
 	f0.SetUnique(true)
 	err = table.Add(f0)
@@ -20,7 +20,7 @@ func newDefaultTestTable(singleDiscrimField bool) (*TableDef, error) {
 		return nil, err
 	}
 
-	f1 := new(FieldMetaString)
+	f1 := new(FieldDefString)
 	f1.SetName(f_firstname)
 	f1.SetFixed(true)
 	f1.SetLength(24)
@@ -29,7 +29,7 @@ func newDefaultTestTable(singleDiscrimField bool) (*TableDef, error) {
 		return nil, err
 	}
 
-	f2 := new(FieldMetaFloat)
+	f2 := new(FieldDefFloat)
 	f2.SetName(f_birth)
 	f2.SetLength(32)
 	err = table.Add(f2)
@@ -37,7 +37,7 @@ func newDefaultTestTable(singleDiscrimField bool) (*TableDef, error) {
 		return nil, err
 	}
 
-	f3 := new(FieldMetaString)
+	f3 := new(FieldDefString)
 	f3.SetName(f_age)
 	f3.SetLength(64)
 	err = table.Add(f3)
@@ -45,14 +45,14 @@ func newDefaultTestTable(singleDiscrimField bool) (*TableDef, error) {
 		return nil, err
 	}
 
-	f4 := new(FieldMetaFloat)
+	f4 := new(FieldDefFloat)
 	f4.SetName(f_height)
 	err = table.Add(f4)
 	if err != nil {
 		return nil, err
 	}
 
-	f5 := new(FieldMetaString)
+	f5 := new(FieldDefString)
 	f5.SetName(tAddress)
 	err = table.Add(f5)
 	if err != nil {
@@ -105,8 +105,8 @@ func newOneToManyTestTable() (*TableDef, *TableDef, Relation, error) {
 		return nil, nil, nil, err
 	}
 
-	var pk FieldMeta
-	pk = new(FieldMetaUint64)
+	var pk FieldDef
+	pk = new(FieldDefUint64)
 	pk.SetName("id")
 	pk.SetUnique(true)
 	err = address.Add(pk)
@@ -114,16 +114,16 @@ func newOneToManyTestTable() (*TableDef, *TableDef, Relation, error) {
 		return nil, nil, nil, err
 	}
 
-	var street FieldMeta
-	street = new(FieldMetaString)
+	var street FieldDef
+	street = new(FieldDefString)
 	street.SetName(fstreet)
 	err = address.Add(street)
 	if err != nil {
 		return nil, nil, nil, err
 	}
 
-	var city FieldMeta
-	city = new(FieldMetaString)
+	var city FieldDef
+	city = new(FieldDefString)
 	city.SetName(fcity)
 	err = address.Add(city)
 	if err != nil {
@@ -139,7 +139,7 @@ func newOneToManyTestTable() (*TableDef, *TableDef, Relation, error) {
 	relation.leftTable = table
 	relation.rightTable = address
 
-	relation.rightTableUniqueFields = []FieldMeta{city, street}
+	relation.rightTableUniqueFields = []FieldDef{city, street}
 
 	relation.leftKeyField = table.GetField(tAddress)
 	if relation.leftKeyField == nil {

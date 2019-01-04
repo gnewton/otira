@@ -31,7 +31,7 @@ func TestAddFieldToTable(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	f := new(FieldMetaUint64)
+	f := new(FieldDefUint64)
 	f.SetName(f_firstname)
 	t.Log(f.String())
 	err = table.Add(f)
@@ -46,7 +46,7 @@ func TestAddComplexIndexToTable(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	f := new(FieldMetaUint64)
+	f := new(FieldDefUint64)
 	f.SetName("people")
 
 	t.Log(f.String())
@@ -65,12 +65,12 @@ func TestCreatePreparedStatementInsert(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	pk := new(FieldMetaUint64)
+	pk := new(FieldDefUint64)
 	pk.SetName("id")
 
 	t.Log(pk.String())
 	err = table.Add(pk)
-	f := new(FieldMetaString)
+	f := new(FieldDefString)
 	f.SetName(f_firstname)
 	t.Log(f.String())
 	err = table.Add(f)

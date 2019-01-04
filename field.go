@@ -6,7 +6,7 @@ import (
 
 type Field struct {
 	field       interface{}
-	fieldMeta   FieldMeta
+	fieldDef    FieldDef
 	hasSetValue bool
 }
 
@@ -18,7 +18,7 @@ func (f *Field) SetValueFast(v interface{}) {
 func (f *Field) SetValue(v interface{}) error {
 	f.field = v
 	f.hasSetValue = true
-	if !f.fieldMeta.IsSameType(v) {
+	if !f.fieldDef.IsSameType(v) {
 		return errors.New("Incorrect type:" + toString(v))
 	}
 	return nil

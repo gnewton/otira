@@ -5,9 +5,26 @@ import (
 	"errors"
 )
 
+type Dialect interface {
+	Constraints(FieldDef, bool) (string, error)
+	CreateIndexString(string, string, []string) (string, error)
+	CreateTableString(t *TableDef) (string, error)
+	DropTableIfExistsString(tableName string) (string, error)
+	ExistsDeepString(*Record) (string, error)
+	ExistsString(table, field string, id uint64) (string, error)
+	FieldType(FieldDef) (string, error)
+	ForeignKeys(t *TableDef) (string, error)
+
+	IsUniqueContraintFailedError(error) bool
+	Pragmas() []string
+	PreparedValueFormat(counter int) (string, error)
+	UpdateString(*Record) (string, error)
+}
+
 const CREATE_TABLE = "CREATE TABLE"
 const SPC = " "
-const PRIMARY_KEY = "PRIMARY_KEY"
+const AND = "AND"
+const PRIMARY_KEY = "PRIMARY KEY"
 const INSERT = "INSERT INTO "
 const VALUES = "VALUES"
 const SELECT = "SELECT"
@@ -54,18 +71,4 @@ func preparedValueFormat(dialect Dialect, counter int) (string, error) {
 
 func createTableString(dialect Dialect, t *TableDef) {
 
-}
-
-type Dialect interface {
-	Constraints(FieldMeta) (string, error)
-	CreateTableString(t *TableDef) (string, error)
-	DropTableIfExistsString(tableName string) (string, error)
-	ExistsString(table, field string, id uint64) (string, error)
-	ExistsDeepString(*Record) (string, error)
-	FieldType(FieldMeta) (string, error)
-	ForeignKeys(t *TableDef) (string, error)
-	Pragmas() []string
-	PreparedValueFormat(counter int) (string, error)
-	UpdateString(*Record) (string, error)
-	IsUniqueContraintFailedError(error) bool
 }

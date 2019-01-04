@@ -5,7 +5,7 @@ import (
 	"strconv"
 )
 
-func baseFieldMetaErrors(f FieldMeta) error {
+func baseFieldDefErrors(f FieldDef) error {
 	if f == nil {
 		return errors.New("Field cannot be nil")
 	}

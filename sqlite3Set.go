@@ -46,7 +46,7 @@ func NewSqlite3Set(dir string) (Set, error) {
 	if err != nil {
 		return nil, err
 	}
-	id := new(FieldMetaUint64)
+	id := new(FieldDefUint64)
 	id.SetName("id")
 	id.SetUnique(true)
 	err = set.table.Add(id)
