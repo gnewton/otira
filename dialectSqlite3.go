@@ -4,6 +4,7 @@ import (
 	"errors"
 	"log"
 	"strconv"
+	"strings"
 )
 
 var sqlite3DefaultPragmas = []string{
@@ -38,7 +39,7 @@ func (d *DialectSqlite3) DropTableIfExistsString(tableName string) (string, erro
 	return "DROP TABLE IF EXISTS " + tableName, nil
 }
 
-func (d *DialectSqlite3) CreateTableString(t *TableMeta) (string, error) {
+func (d *DialectSqlite3) CreateTableString(t *TableDef) (string, error) {
 	if t == nil {
 		return "", errors.New("Tablemeta is nil")
 	}
@@ -71,9 +72,9 @@ func (d *DialectSqlite3) CreateTableString(t *TableMeta) (string, error) {
 	return s, nil
 }
 
-func (d *DialectSqlite3) ForeignKeys(t *TableMeta) (string, error) {
+func (d *DialectSqlite3) ForeignKeys(t *TableDef) (string, error) {
 	if t == nil {
-		return "", errors.New("TableMeta is nil")
+		return "", errors.New("TableDef is nil")
 	}
 	var s string
 	s += d.oneToManyForeignKeys(t)
@@ -81,7 +82,7 @@ func (d *DialectSqlite3) ForeignKeys(t *TableMeta) (string, error) {
 	return s, nil
 }
 
-func (d *DialectSqlite3) oneToManyForeignKeys(t *TableMeta) string {
+func (d *DialectSqlite3) oneToManyForeignKeys(t *TableDef) string {
 	var s string
 	if t.oneToMany == nil {
 		return ""
@@ -167,8 +168,8 @@ func (d *DialectSqlite3) UpdateString(rec *Record) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	updateString := UPDATE + SPC + rec.tableMeta.name + SPC + updateValueString + SPC + WHERE + SPC + rec.fields[0].Name() + EQUALS + toString(pk)
-	if rec.tableMeta.isJoinTable {
+	updateString := UPDATE + SPC + rec.tableDef.name + SPC + updateValueString + SPC + WHERE + SPC + rec.fields[0].Name() + EQUALS + toString(pk)
+	if rec.tableDef.isJoinTable {
 		updateString += rec.fields[1].Name() + EQUALS + toString(rec.values[1])
 	}
 	return updateString, nil
@@ -189,4 +190,8 @@ func (d *DialectSqlite3) updateValuesString(fields []FieldMeta) (string, error) 
 		s += fields[i].Name() + EQUALS + preparedValueFormat
 	}
 	return s, nil
+}
+
+func (d *DialectSqlite3) IsUniqueContraintFailedError(err error) bool {
+	return strings.HasPrefix(err.Error(), "UNIQUE constraint failed:")
 }

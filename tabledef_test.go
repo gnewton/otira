@@ -7,7 +7,7 @@ import (
 
 func TestCreateTable(t *testing.T) {
 
-	_, err := NewTableMeta("journals")
+	_, err := NewTableDef("journals")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -27,7 +27,7 @@ const pk = "id"
 var fieldnames []string = []string{"city", "stateprovince"}
 
 func TestAddFieldToTable(t *testing.T) {
-	table, err := NewTableMeta(tablename)
+	table, err := NewTableDef(tablename)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -42,7 +42,7 @@ func TestAddFieldToTable(t *testing.T) {
 }
 
 func TestAddComplexIndexToTable(t *testing.T) {
-	table, err := NewTableMeta(tablename)
+	table, err := NewTableDef(tablename)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -60,7 +60,7 @@ func TestAddComplexIndexToTable(t *testing.T) {
 }
 
 func TestCreatePreparedStatementInsert(t *testing.T) {
-	table, err := NewTableMeta(tablename)
+	table, err := NewTableDef(tablename)
 	if err != nil {
 		t.Fatal(err)
 	}

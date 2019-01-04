@@ -69,19 +69,25 @@ func (pers *Persister) initPragmas() error {
 	return nil
 }
 
-func (pers *Persister) CreateTables(tms ...*TableMeta) error {
+func (pers *Persister) CreateTables(tms ...*TableDef) error {
+	pers.createMutex.Lock()
+	defer pers.createMutex.Unlock()
+
+	if tms == nil {
+		return errors.New("Table list is nil")
+	}
+	if len(tms) == 0 {
+		return errors.New("Table list is empty")
+	}
 	if pers.doneCreatingTables {
 		return errors.New("CreateTables can only be called once")
 	}
-
-	pers.createMutex.Lock()
-	defer pers.createMutex.Unlock()
 
 	if pers.db == nil {
 		return errors.New("db cannot be nil")
 	}
 	if tms == nil {
-		return errors.New("TableMeta cannot be nil")
+		return errors.New("TableDef cannot be nil")
 	}
 
 	if pers.dialect == nil {
@@ -90,6 +96,9 @@ func (pers *Persister) CreateTables(tms ...*TableMeta) error {
 
 	for i := 0; i < len(tms); i++ {
 		tm := tms[i]
+		if tm == nil {
+			return errors.New("TableDef cannot be nil")
+		}
 		if tm.created {
 			continue
 		}
@@ -106,8 +115,11 @@ func (pers *Persister) CreateTables(tms ...*TableMeta) error {
 
 }
 
-func (pers *Persister) createTable(tm *TableMeta) error {
-	log.Println("createTable: " + tm.name)
+func (pers *Persister) createTable(tm *TableDef) error {
+	if tm == nil {
+		return errors.New("Table is nil")
+	}
+
 	createTableString, err := tm.createTableString(pers.dialect)
 	if err != nil {
 		log.Println(err)
@@ -119,12 +131,12 @@ func (pers *Persister) createTable(tm *TableMeta) error {
 	if err != nil {
 		return err
 	}
-	log.Println(sql)
 	_, err = exec(pers.db, sql)
 	if err != nil {
 		return err
 	}
 	log.Println("createTableString=" + createTableString)
+
 	// Create the table in the db
 	_, err = exec(pers.db, createTableString)
 	if err != nil {
@@ -135,17 +147,24 @@ func (pers *Persister) createTable(tm *TableMeta) error {
 	return err
 }
 
-func (pers *Persister) createRelationTables(tm *TableMeta) error {
-	pers.createOneToManyTables(tm)
-	err := pers.createManyToManyTables(tm)
+func (pers *Persister) createRelationTables(tm *TableDef) error {
+	err := pers.createOneToManyTables(tm)
+	if err != nil {
+		return err
+	}
+	err = pers.createManyToManyTables(tm)
 	return err
 }
 
-func (pers *Persister) createOneToManyTables(tm *TableMeta) error {
+func (pers *Persister) createOneToManyTables(tm *TableDef) error {
+	//TODO
+
+	log.Println("TODO")
+	//return errors.New("TODO")
 	return nil
 }
 
-func (pers *Persister) createManyToManyTables(tm *TableMeta) error {
+func (pers *Persister) createManyToManyTables(tm *TableDef) error {
 	log.Println("Create M2M")
 	log.Println(len(tm.manyToMany))
 	for i := 0; i < len(tm.manyToMany); i++ {
@@ -264,15 +283,15 @@ func (pers *Persister) preparedString(record *Record) (string, error) {
 	var ok bool
 	var preparedString string
 	var err error
-	if preparedString, ok = pers.preparedStrings[record.tableMeta.name]; !ok {
-		preparedString, err = record.tableMeta.CreatePreparedStatementInsertAllFields(pers.dialect)
+	if preparedString, ok = pers.preparedStrings[record.tableDef.name]; !ok {
+		preparedString, err = record.tableDef.CreatePreparedStatementInsertAllFields(pers.dialect)
 		//log.Println("Prepared String=" + preparedString)
 		if err != nil {
 			log.Println("error=")
 			log.Println(err)
 			return "", err
 		}
-		pers.preparedStrings[record.tableMeta.name] = preparedString
+		pers.preparedStrings[record.tableDef.name] = preparedString
 	} else {
 		//log.Println("cached")
 	}
@@ -282,8 +301,8 @@ func (pers *Persister) preparedString(record *Record) (string, error) {
 func (pers *Persister) preparedStatement(record *Record) (*sql.Stmt, error) {
 	var ok bool
 	var stmt *sql.Stmt
-	if stmt, ok = pers.preparedStatements[record.tableMeta.name]; !ok {
-		//preparedString, err := record.tableMeta.CreatePreparedStatementInsertAllFields(pers.dialect)
+	if stmt, ok = pers.preparedStatements[record.tableDef.name]; !ok {
+		//preparedString, err := record.tableDef.CreatePreparedStatementInsertAllFields(pers.dialect)
 		preparedString, err := pers.preparedString(record)
 		if err != nil {
 			return nil, err
@@ -296,8 +315,8 @@ func (pers *Persister) preparedStatement(record *Record) (*sql.Stmt, error) {
 		if err != nil {
 			return nil, err
 		}
-		pers.preparedStatements[record.tableMeta.name] = stmt
-		pers.preparedStrings[record.tableMeta.name] = preparedString
+		pers.preparedStatements[record.tableDef.name] = stmt
+		pers.preparedStrings[record.tableDef.name] = preparedString
 	} else {
 		//log.Println("Prepared statement cache hit")
 	}
@@ -444,13 +463,12 @@ func (pers *Persister) save(rec *Record) error {
 		return err
 	}
 	pers.saveMutex.Lock()
-
 	if pers.SupportUpdates {
 		pk, err := rec.PrimaryKeyValue()
 		if err != nil {
 			return err
 		}
-		err = rec.tableMeta.writeCache.Put(pk)
+		err = rec.tableDef.writeCache.Put(pk)
 		if err != nil {
 			return err
 		}
@@ -458,10 +476,20 @@ func (pers *Persister) save(rec *Record) error {
 
 	result, err := execStatement(stmt, rec.Values())
 	if err != nil {
-		log.Println(err)
-		log.Println(rec.values[0])
-		log.Println(rec.tableMeta.name)
-		return err
+		if pers.dialect.IsUniqueContraintFailedError(err) {
+			log.Println("Updating:" + rec.tableDef.name + "   Primary key=" + toString(rec.values[0]))
+			err := pers.Update(rec)
+			if err != nil {
+				log.Println(err)
+				log.Println("\tTable:" + rec.tableDef.name + "   Primary key=" + toString(rec.values[0]))
+				return err
+			}
+			return nil
+		} else {
+			log.Println(err)
+			log.Println("\tTable:" + rec.tableDef.name + "   Primary key=" + toString(rec.values[0]))
+			return err
+		}
 	}
 	pers.saveMutex.Unlock()
 	// lastInsertId, err := result.LastInsertId()
@@ -479,7 +507,7 @@ func (pers *Persister) save(rec *Record) error {
 }
 
 func (pers *Persister) CreatePreparedStatementInsertAllFields(record *Record) (string, error) {
-	a, b := pers.CreatePreparedStatementInsertSomeFields(record.tableMeta.name, record.tableMeta.fields...)
+	a, b := pers.CreatePreparedStatementInsertSomeFields(record.tableDef.name, record.tableDef.fields...)
 	return a, b
 }
 
@@ -489,9 +517,9 @@ func (pers *Persister) CreatePreparedStatementInsertFromRecord(record *Record) (
 	}
 	fields := make([]FieldMeta, 0)
 	for i, _ := range record.values {
-		fields = append(fields, record.tableMeta.fields[i])
+		fields = append(fields, record.tableDef.fields[i])
 	}
-	return pers.CreatePreparedStatementInsertSomeFields(record.tableMeta.name, fields...)
+	return pers.CreatePreparedStatementInsertSomeFields(record.tableDef.name, fields...)
 }
 
 func (pers *Persister) Exists(r *Record) (bool, error) {
@@ -500,7 +528,7 @@ func (pers *Persister) Exists(r *Record) (bool, error) {
 		return false, err
 	}
 
-	s, err := pers.dialect.ExistsString(r.tableMeta.name, r.tableMeta.fields[0].Name(), pkValue)
+	s, err := pers.dialect.ExistsString(r.tableDef.name, r.tableDef.fields[0].Name(), pkValue)
 	if err != nil {
 		return false, err
 	}
@@ -554,7 +582,7 @@ func (pers *Persister) isUpdate(rec *Record) (bool, error) {
 	log.Println("Writing")
 	log.Println(pk)
 
-	ok, err := rec.tableMeta.writeCache.Contains(pk)
+	ok, err := rec.tableDef.writeCache.Contains(pk)
 	if ok {
 		return true, nil
 	}

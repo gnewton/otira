@@ -12,7 +12,7 @@ type FieldMetaImpl struct {
 	name       string
 	nullable   bool
 	primaryKey bool
-	table      *TableMeta
+	table      *TableDef
 	unique     bool
 	//Table(*Table)
 }
@@ -24,11 +24,11 @@ func (b *FieldMetaImpl) Name() string {
 	return b.name
 }
 
-func (b *FieldMetaImpl) SetTable(table *TableMeta) {
+func (b *FieldMetaImpl) SetTable(table *TableDef) {
 	b.table = table
 }
 
-func (b *FieldMetaImpl) Table() *TableMeta {
+func (b *FieldMetaImpl) Table() *TableDef {
 	return b.table
 }
 

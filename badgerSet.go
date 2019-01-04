@@ -3,7 +3,6 @@ package otira
 import (
 	"errors"
 	"github.com/dgraph-io/badger"
-	"log"
 	"os"
 )
 
@@ -90,13 +89,12 @@ func (hc *badgerSet) Put(key uint64) error {
 	}
 
 	// Commit the transaction and check for error.
-	if hc.counter > 500 {
+	if hc.counter > 5000 {
 		if err := hc.txn.Commit(); err != nil {
 			return err
 		}
 		hc.counter = 0
 		hc.txn = hc.db.NewTransaction(true)
-		log.Println("========= Cache commit")
 	}
 	return nil
 }

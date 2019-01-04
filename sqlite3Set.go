@@ -1,17 +1,17 @@
 package otira
 
 import (
+	"database/sql"
 	"errors"
-	"github.com/dgraph-io/badger"
-	"log"
+	_ "github.com/mattn/go-sqlite3"
 	"os"
 )
 
 type sqlite3Set struct {
-	db      *badger.DB
-	txn     *badger.Txn
 	dir     string
 	counter uint32
+	pers    *Persister
+	table   *TableDef
 }
 
 func NewSqlite3Set(dir string) (Set, error) {
@@ -30,73 +30,75 @@ func NewSqlite3Set(dir string) (Set, error) {
 		return nil, err
 	}
 
-	opts := badger.DefaultOptions
-	opts.Dir = dir
-	opts.ValueDir = dir
+	set := new(sqlite3Set)
+	set.dir = dir
 
-	cache := new(sqlite3Set)
-	cache.dir = dir
-	cache.db, err = badger.Open(opts)
+	db, err := sql.Open("sqlite3", dir+"/foom6")
+	if err != nil {
+		return nil, err
+	}
+	set.pers, err = NewPersister(db, new(DialectSqlite3))
 	if err != nil {
 		return nil, err
 	}
 
-	cache.txn = cache.db.NewTransaction(true)
-	cache.counter = 0
-	return cache, nil
+	set.table, err = NewTableDef("set")
+	if err != nil {
+		return nil, err
+	}
+	id := new(FieldMetaUint64)
+	id.SetName("id")
+	id.SetUnique(true)
+	err = set.table.Add(id)
+	if err != nil {
+		return nil, err
+	}
+	set.table.Done()
+	set.pers.CreateTables(set.table)
+
+	set.counter = 0
+	if err != nil {
+		return nil, err
+	}
+	return set, nil
 
 }
 
-func (hc *sqlite3Set) Close() error {
-	err := hc.txn.Commit()
-	if err != nil {
-		return err
-	}
-	hc.txn.Discard()
-	err = hc.db.Close()
-
-	if err != nil {
-		return err
-	}
-	err = os.RemoveAll(hc.dir)
+func (set *sqlite3Set) Close() error {
+	err := os.RemoveAll(set.dir)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (hc *sqlite3Set) Contains(key uint64) (bool, error) {
-	bk := uint64ToByteArray(key)
-
-	_, err := hc.txn.Get(bk)
-	if err == badger.ErrKeyNotFound {
-		return false, nil
-	}
+func (set *sqlite3Set) Contains(key uint64) (bool, error) {
+	s := "select count(id) from set where id=?"
+	stmt, err := set.pers.tx.Prepare(s)
+	defer stmt.Close()
 	if err != nil {
 		return false, err
 	}
-	return true, nil
 
+	var count uint64
+	err = stmt.QueryRow(key).Scan(&count)
+	switch {
+	case err == sql.ErrNoRows:
+		return false, nil
+	case err != nil:
+		return false, err
+	default:
+		return true, nil
+	}
 }
 
-func (hc *sqlite3Set) Put(key uint64) error {
-	hc.counter++
-	bk := uint64ToByteArray(key)
-
-	// Use the transaction...
-	err := hc.txn.Set(bk, []byte(""))
+func (set *sqlite3Set) Put(key uint64) error {
+	set.counter++
+	rec, err := set.table.NewRecord()
+	rec.values[0] = key
+	err = set.pers.save(rec)
 	if err != nil {
 		return err
-	}
-
-	// Commit the transaction and check for error.
-	if hc.counter > 500 {
-		if err := hc.txn.Commit(); err != nil {
-			return err
-		}
-		hc.counter = 0
-		hc.txn = hc.db.NewTransaction(true)
-		log.Println("========= Cache commit")
 	}
 	return nil
 }

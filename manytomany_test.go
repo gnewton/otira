@@ -249,7 +249,7 @@ func TestManyToManyInsertTwoRecordsWithDifferentRelationRecord(t *testing.T) {
 
 const TableNamePerson = "person"
 
-func simpleManyToMany() (*Persister, *TableMeta, *TableMeta, *ManyToMany, error) {
+func simpleManyToMany() (*Persister, *TableDef, *TableDef, *ManyToMany, error) {
 	db, err := sql.Open("sqlite3", ":memory:")
 	//db, err := sql.Open("sqlite3", "db.sqlite3")
 
@@ -269,7 +269,7 @@ func simpleManyToMany() (*Persister, *TableMeta, *TableMeta, *ManyToMany, error)
 	return pers, team, person, m2m, nil
 }
 
-func newManyToManyDefaultTables() (*TableMeta, *TableMeta, *ManyToMany, error) {
+func newManyToManyDefaultTables() (*TableDef, *TableDef, *ManyToMany, error) {
 	personTable, err := makePersonTable()
 	if err != nil {
 		return nil, nil, nil, err
@@ -288,8 +288,8 @@ func newManyToManyDefaultTables() (*TableMeta, *TableMeta, *ManyToMany, error) {
 
 }
 
-func makePersonTable() (*TableMeta, error) {
-	personTable, err := NewTableMeta(TableNamePerson)
+func makePersonTable() (*TableDef, error) {
+	personTable, err := NewTableDef(TableNamePerson)
 	if err != nil {
 		return nil, err
 	}
@@ -317,7 +317,7 @@ func makePersonTable() (*TableMeta, error) {
 	return personTable, nil
 }
 
-func makePersonRecord(t *TableMeta, id uint64, name string) (*Record, error) {
+func makePersonRecord(t *TableDef, id uint64, name string) (*Record, error) {
 	rec, err := t.NewRecord()
 	if err != nil {
 		return nil, err
@@ -335,8 +335,8 @@ func makePersonRecord(t *TableMeta, id uint64, name string) (*Record, error) {
 const TableNameTeam = "team"
 const TeamNameField = "team_name"
 
-func makeTeamTable() (*TableMeta, error) {
-	teamTable, err := NewTableMeta(TableNameTeam)
+func makeTeamTable() (*TableDef, error) {
+	teamTable, err := NewTableDef(TableNameTeam)
 	if err != nil {
 		return nil, err
 	}
@@ -361,7 +361,7 @@ func makeTeamTable() (*TableMeta, error) {
 	return teamTable, nil
 }
 
-func makeTeamRecord(t *TableMeta, id uint64, name string) (*Record, error) {
+func makeTeamRecord(t *TableDef, id uint64, name string) (*Record, error) {
 	rec, err := t.NewRecord()
 	if err != nil {
 		return nil, err

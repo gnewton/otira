@@ -14,7 +14,7 @@ type Record struct {
 	preparedString  string
 	relationRecords []*RelationRecord
 	stmt            *sql.Stmt
-	tableMeta       *TableMeta
+	tableDef        *TableDef
 	tx              *sql.Tx
 	valueIsSet      []bool
 	values          []interface{}
@@ -37,7 +37,7 @@ func (r *Record) Prepare(tx *sql.Tx) error {
 
 	var err error
 	if r.preparedString == "" {
-		r.preparedString, err = r.tableMeta.CreatePreparedStatementInsertFromRecord(new(DialectSqlite3), r)
+		r.preparedString, err = r.tableDef.CreatePreparedStatementInsertFromRecord(new(DialectSqlite3), r)
 		if err != nil {
 			return err
 		}
@@ -54,9 +54,9 @@ func (r *Record) Values() []interface{} {
 	return r.values
 }
 
-func newRecord(tm *TableMeta, fields []FieldMeta, stmt *sql.Stmt) (*Record, error) {
+func newRecord(tm *TableDef, fields []FieldMeta, stmt *sql.Stmt) (*Record, error) {
 	if tm == nil {
-		return nil, errors.New("TableMeta is nil")
+		return nil, errors.New("TableDef is nil")
 	}
 	if fields == nil {
 		return nil, errors.New("Fields is nil")
@@ -65,7 +65,7 @@ func newRecord(tm *TableMeta, fields []FieldMeta, stmt *sql.Stmt) (*Record, erro
 		return nil, errors.New("Fields is zero length")
 	}
 	rec := new(Record)
-	rec.tableMeta = tm
+	rec.tableDef = tm
 
 	rec.values = make([]interface{}, len(fields))
 	rec.valueIsSet = make([]bool, len(fields))
@@ -120,7 +120,7 @@ func (r *Record) Reset() error {
 }
 
 func (r *Record) Clone() (*Record, error) {
-	return newRecord(r.tableMeta, r.fields, r.stmt)
+	return newRecord(r.tableDef, r.fields, r.stmt)
 }
 
 func (r *Record) SetByName(f string, v interface{}) error {
@@ -141,7 +141,7 @@ func (r *Record) Set(i int, v interface{}) error {
 	if i < 0 || i > len(r.values) {
 		return errors.New("Index out of bounds. Should be 0.." + strconv.Itoa(len(r.values)) + "; Actual: " + strconv.Itoa(i))
 	}
-	if r.tableMeta.validating {
+	if r.tableDef.validating {
 		if !r.fields[i].IsSameType(v) {
 			return errors.New("Incorrect type")
 		}
@@ -165,7 +165,7 @@ func (r *Record) PrimaryKeyValue() (uint64, error) {
 func (r *Record) String() string {
 	var s string
 
-	s += "TableName:" + r.tableMeta.GetName()
+	s += "TableName:" + r.tableDef.GetName()
 	for i := 0; i < len(r.fields); i++ {
 		s += "\n " + r.fields[i].Name() + ":" + toString(r.values[i])
 	}

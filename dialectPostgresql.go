@@ -9,9 +9,9 @@ import (
 type DialectPostgresql struct {
 }
 
-func (d *DialectPostgresql) CreateTableString(t *TableMeta) (string, error) {
+func (d *DialectPostgresql) CreateTableString(t *TableDef) (string, error) {
 	if t == nil {
-		return "", errors.New("TableMeta is nil")
+		return "", errors.New("TableDef is nil")
 	}
 
 	log.Println("TODO")
@@ -41,9 +41,9 @@ func (d *DialectPostgresql) Constraints(fm FieldMeta) (string, error) {
 	return "", errors.New("TODO")
 }
 
-func (d *DialectPostgresql) ForeignKeys(t *TableMeta) (string, error) {
+func (d *DialectPostgresql) ForeignKeys(t *TableDef) (string, error) {
 	if t == nil {
-		return "", errors.New("TableMeta is nil")
+		return "", errors.New("TableDef is nil")
 	}
 	log.Println("TODO")
 	return "", errors.New("TODO")
@@ -76,4 +76,9 @@ func (d *DialectPostgresql) ExistsDeepString(*Record) (string, error) {
 func (d *DialectPostgresql) UpdateString(rec *Record) (string, error) {
 	log.Println("TODO")
 	return "", errors.New("TODO")
+}
+
+func (d *DialectPostgresql) IsUniqueContraintFailedError(err error) bool {
+	// TODO
+	return true
 }

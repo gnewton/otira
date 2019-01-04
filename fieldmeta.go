@@ -3,8 +3,8 @@ package otira
 type FieldMeta interface {
 	Name() string
 	SetName(string)
-	Table() *TableMeta
-	SetTable(*TableMeta)
+	Table() *TableDef
+	SetTable(*TableDef)
 	SetLength(int)
 	Length() int
 	Unique() bool

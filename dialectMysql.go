@@ -7,7 +7,7 @@ import (
 type DialectMysql struct {
 }
 
-func (d *DialectMysql) CreateTableString(t *TableMeta) string {
+func (d *DialectMysql) CreateTableString(t *TableDef) string {
 	log.Println("TODO")
 	return "TODO"
 }

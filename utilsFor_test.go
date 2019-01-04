@@ -6,8 +6,8 @@ import (
 
 const ADDRESS = "address"
 
-func newDefaultTestTable(singleDiscrimField bool) (*TableMeta, error) {
-	table, err := NewTableMeta(tablename)
+func newDefaultTestTable(singleDiscrimField bool) (*TableDef, error) {
+	table, err := NewTableDef(tablename)
 	if err != nil {
 		return nil, err
 	}
@@ -94,13 +94,13 @@ func populateDefaultTableRecord(rec *Record) error {
 	return nil
 }
 
-func newOneToManyTestTable() (*TableMeta, *TableMeta, Relation, error) {
+func newOneToManyTestTable() (*TableDef, *TableDef, Relation, error) {
 	table, err := newDefaultTestTable(false)
 	if err != nil {
 		return nil, nil, nil, err
 	}
 
-	address, err := NewTableMeta(tAddress)
+	address, err := NewTableDef(tAddress)
 	if err != nil {
 		return nil, nil, nil, err
 	}

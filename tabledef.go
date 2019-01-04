@@ -6,7 +6,7 @@ import (
 )
 
 //Assumes 0th field is primary key, type FieldMetaUint64
-type TableMeta struct {
+type TableDef struct {
 	ICounter
 	UseRecordPrimaryKeys bool
 	created              bool
@@ -28,8 +28,8 @@ type TableMeta struct {
 	writeCache           Set
 }
 
-func NewTableMeta(name string) (*TableMeta, error) {
-	t := new(TableMeta)
+func NewTableDef(name string) (*TableDef, error) {
+	t := new(TableDef)
 	t.name = name
 	t.done = false
 	t.created = false
@@ -54,19 +54,19 @@ func NewTableMeta(name string) (*TableMeta, error) {
 	return t, nil
 }
 
-func (t *TableMeta) AddOneToMany(one2m *OneToMany) {
+func (t *TableDef) AddOneToMany(one2m *OneToMany) {
 	t.oneToMany = append(t.oneToMany, one2m)
 	t.oneToManyMap[one2m.name] = one2m
 }
 
-func (t *TableMeta) AddManyToMany(m2m *ManyToMany) {
+func (t *TableDef) AddManyToMany(m2m *ManyToMany) {
 	t.manyToMany = append(t.manyToMany, m2m)
 	t.manyToManyMap[m2m.name] = m2m
 	makeM2MJoinTable(m2m)
 }
 
 func makeM2MJoinTable(m2m *ManyToMany) error {
-	joinTable, err := NewTableMeta(m2m.leftTable.name + "_" + m2m.rightTable.name)
+	joinTable, err := NewTableDef(m2m.leftTable.name + "_" + m2m.rightTable.name)
 	if err != nil {
 		return err
 	}
@@ -90,15 +90,15 @@ func makeM2MJoinTable(m2m *ManyToMany) error {
 	return err
 }
 
-func (t *TableMeta) PrimaryKey() FieldMeta {
+func (t *TableDef) PrimaryKey() FieldMeta {
 	return t.fields[0]
 }
 
-func (t *TableMeta) SetJoinDiscrimFields(fields ...FieldMeta) {
+func (t *TableDef) SetJoinDiscrimFields(fields ...FieldMeta) {
 	t.joinDiscrimFields = fields
 }
 
-func (t *TableMeta) GetOneToMany(k string) *OneToMany {
+func (t *TableDef) GetOneToMany(k string) *OneToMany {
 	rel, ok := t.oneToManyMap[k]
 	if ok {
 		return rel
@@ -108,7 +108,7 @@ func (t *TableMeta) GetOneToMany(k string) *OneToMany {
 
 }
 
-func (t *TableMeta) AddOneToMany_OLD(rel *OneToMany) error {
+func (t *TableDef) AddOneToMany_OLD(rel *OneToMany) error {
 	if rel == nil {
 		return errors.New("OneToMany is nil")
 	}
@@ -121,7 +121,7 @@ func (t *TableMeta) AddOneToMany_OLD(rel *OneToMany) error {
 	return nil
 }
 
-func (t *TableMeta) GetField(s string) FieldMeta {
+func (t *TableDef) GetField(s string) FieldMeta {
 	fm, ok := t.fieldsMap[s]
 	if ok {
 		return fm
@@ -131,15 +131,15 @@ func (t *TableMeta) GetField(s string) FieldMeta {
 
 }
 
-func (t *TableMeta) Fields() []FieldMeta {
+func (t *TableDef) Fields() []FieldMeta {
 	return t.fields
 }
 
-func (t *TableMeta) GetName() string {
+func (t *TableDef) GetName() string {
 	return t.name
 }
 
-func (t *TableMeta) SetDone() error {
+func (t *TableDef) SetDone() error {
 	err := t.validate()
 	if err != nil {
 		log.Println(err)
@@ -150,7 +150,7 @@ func (t *TableMeta) SetDone() error {
 }
 
 // check kto see if there is one and only one primary key
-func (t *TableMeta) validate() error {
+func (t *TableDef) validate() error {
 	if t == nil {
 		return errors.New("FATAL !!!!!!!!!!!!!!!!!!! tablemeta is nil")
 	}
@@ -160,11 +160,11 @@ func (t *TableMeta) validate() error {
 	return nil
 }
 
-func (t *TableMeta) Done() bool {
+func (t *TableDef) Done() bool {
 	return t.done
 }
 
-func (t *TableMeta) NewRecordSomeFields(fields ...FieldMeta) (*Record, error) {
+func (t *TableDef) NewRecordSomeFields(fields ...FieldMeta) (*Record, error) {
 	if fields == nil {
 		return nil, errors.New("Fields is nil")
 	}
@@ -172,7 +172,7 @@ func (t *TableMeta) NewRecordSomeFields(fields ...FieldMeta) (*Record, error) {
 		return nil, errors.New("Fields zero length")
 	}
 	if !t.done {
-		return nil, errors.New("Cannot make new record: TableMeta must be done before using")
+		return nil, errors.New("Cannot make new record: TableDef must be done before using")
 	}
 
 	rec, err := newRecord(t, fields, nil)
@@ -191,17 +191,17 @@ func (t *TableMeta) NewRecordSomeFields(fields ...FieldMeta) (*Record, error) {
 	return rec, nil
 }
 
-func (t *TableMeta) NewRecord() (*Record, error) {
+func (t *TableDef) NewRecord() (*Record, error) {
 
 	if !t.done {
-		return nil, errors.New("Cannot make new record: TableMeta must be done before using")
+		return nil, errors.New("Cannot make new record: TableDef must be done before using")
 	}
 
 	return t.NewRecordSomeFields(t.fields...)
 
 }
 
-func (t *TableMeta) AddIndex(name string, field0, field1 *FieldMeta, fields ...*FieldMeta) error {
+func (t *TableDef) AddIndex(name string, field0, field1 *FieldMeta, fields ...*FieldMeta) error {
 	if t.indexes == nil {
 		return errors.New("Index is nil")
 	}
@@ -211,7 +211,7 @@ func (t *TableMeta) AddIndex(name string, field0, field1 *FieldMeta, fields ...*
 
 }
 
-func (t *TableMeta) Add(f FieldMeta) error {
+func (t *TableDef) Add(f FieldMeta) error {
 	if err := baseFieldMetaErrors(f); err != nil {
 		return err
 	}
@@ -238,7 +238,7 @@ func (t *TableMeta) Add(f FieldMeta) error {
 	return nil
 }
 
-func (t *TableMeta) createTableString(dialect Dialect) (string, error) {
+func (t *TableDef) createTableString(dialect Dialect) (string, error) {
 	if !t.done {
 		return "", errors.New("Table must be done")
 	}
@@ -248,18 +248,18 @@ func (t *TableMeta) createTableString(dialect Dialect) (string, error) {
 	return dialect.CreateTableString(t)
 }
 
-func (t *TableMeta) CreatePreparedStatementInsertAllFields(dialect Dialect) (string, error) {
+func (t *TableDef) CreatePreparedStatementInsertAllFields(dialect Dialect) (string, error) {
 	a, b := t.CreatePreparedStatementInsertSomeFields(dialect, t.fields...)
 	return a, b
 }
 
-func (t *TableMeta) CreatePreparedStatementInsertFromRecord(dialect Dialect, record *Record) (string, error) {
+func (t *TableDef) CreatePreparedStatementInsertFromRecord(dialect Dialect, record *Record) (string, error) {
 	if record == nil {
 		return "", errors.New("Record cannot be nil")
 	}
 	fields := make([]FieldMeta, 0)
 	for i, _ := range record.values {
-		fields = append(fields, record.tableMeta.fields[i])
+		fields = append(fields, record.tableDef.fields[i])
 	}
 	err := t.SetDone()
 	if err != nil {
@@ -269,7 +269,7 @@ func (t *TableMeta) CreatePreparedStatementInsertFromRecord(dialect Dialect, rec
 	return t.CreatePreparedStatementInsertSomeFields(dialect, fields...)
 }
 
-func (t *TableMeta) CreatePreparedStatementInsertSomeFields(dialect Dialect, fields ...FieldMeta) (string, error) {
+func (t *TableDef) CreatePreparedStatementInsertSomeFields(dialect Dialect, fields ...FieldMeta) (string, error) {
 	if !t.done {
 		return "", errors.New("Table must be done")
 	}

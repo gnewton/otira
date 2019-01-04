@@ -9,7 +9,7 @@ const CITY = "city"
 const CITYFK = "cityfk"
 const NAME = "name"
 
-func newOneToManyDefaultTables() (*TableMeta, *TableMeta, *OneToMany, error) {
+func newOneToManyDefaultTables() (*TableDef, *TableDef, *OneToMany, error) {
 	addressTable, err := makeAddressTable()
 	if err != nil {
 		return nil, nil, nil, err
@@ -35,8 +35,8 @@ func newOneToManyDefaultTables() (*TableMeta, *TableMeta, *OneToMany, error) {
 	return addressTable, cityTable, one2m, nil
 }
 
-func makeAddressTable() (*TableMeta, error) {
-	addressTable, err := NewTableMeta(ADDRESS)
+func makeAddressTable() (*TableDef, error) {
+	addressTable, err := NewTableDef(ADDRESS)
 	if err != nil {
 		return nil, err
 	}
@@ -68,8 +68,8 @@ func makeAddressTable() (*TableMeta, error) {
 	return addressTable, nil
 }
 
-func makeCityTable() (*TableMeta, error) {
-	cityTable, err := NewTableMeta(CITY)
+func makeCityTable() (*TableDef, error) {
+	cityTable, err := NewTableDef(CITY)
 	if err != nil {
 		return nil, err
 	}
@@ -103,7 +103,7 @@ const Address1PK = uint64(675)
 const Address1Street = "Main St."
 const Address2PK = uint64(88908)
 
-func makeCityRecord1(t *TableMeta, citypkvalue uint64) (*Record, error) {
+func makeCityRecord1(t *TableDef, citypkvalue uint64) (*Record, error) {
 	rec, err := t.NewRecord()
 	if err != nil {
 		return nil, err
@@ -120,7 +120,7 @@ func makeCityRecord1(t *TableMeta, citypkvalue uint64) (*Record, error) {
 	return rec, nil
 }
 
-func makeCityRecord2(t *TableMeta) (*Record, error) {
+func makeCityRecord2(t *TableDef) (*Record, error) {
 	rec, err := t.NewRecord()
 	if err != nil {
 		return nil, err
@@ -137,7 +137,7 @@ func makeCityRecord2(t *TableMeta) (*Record, error) {
 	return rec, nil
 }
 
-func makeAddressRecord1(t *TableMeta, addressPkValue uint64) (*Record, error) {
+func makeAddressRecord1(t *TableDef, addressPkValue uint64) (*Record, error) {
 	rec, err := t.NewRecord()
 	if err != nil {
 		return nil, err

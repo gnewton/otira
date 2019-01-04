@@ -15,7 +15,7 @@ func TestCreateSimpleOneToMany(t *testing.T) {
 
 }
 
-func simpleOneToMany() (*Persister, *TableMeta, *TableMeta, *OneToMany, error) {
+func simpleOneToMany() (*Persister, *TableDef, *TableDef, *OneToMany, error) {
 	db, err := sql.Open("sqlite3", ":memory:")
 	//db, err := sql.Open("sqlite3", "smith?_mutex=no&_journal_mode=OFF")
 	if err != nil {

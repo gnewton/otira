@@ -95,10 +95,10 @@ func (dir *Director) start() {
 			record := records[i]
 			n++
 			if record != nil {
-				tableName := record.tableMeta.name
+				tableName := record.tableDef.name
 				// if preparedStatement, ok := pers.preparedStatements[tableName]; !ok {
 				// 	if preparedString, ok2 := pers.preparedStrings[tableName]; !ok {
-				// 		preparedString, _ = record.tableMeta.CreatePreparedStatementInsertFromRecord(pers.dialect, record)
+				// 		preparedString, _ = record.tableDef.CreatePreparedStatementInsertFromRecord(pers.dialect, record)
 				// 		pers.preparedStrings[tableName] = preparedString
 
 				// 	}

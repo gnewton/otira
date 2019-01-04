@@ -6,8 +6,8 @@ type Relation interface {
 
 type baseRelation struct {
 	name                   string
-	leftTable              *TableMeta
-	rightTable             *TableMeta
+	leftTable              *TableDef
+	rightTable             *TableDef
 	rightTableUniqueFields []FieldMeta // fields to find out if a record exists; these fields are used in a lookup
 	leftKeyField           FieldMeta
 	rightKeyField          FieldMeta
@@ -28,7 +28,7 @@ func (otm *OneToMany) String() string {
 
 type ManyToMany struct {
 	baseRelation
-	joinTable *TableMeta
+	joinTable *TableDef
 	pkCache   map[string]struct{}
 }
 

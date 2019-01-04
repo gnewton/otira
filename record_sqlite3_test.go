@@ -126,7 +126,7 @@ func TestCreateTableSyntaxFail(t *testing.T) {
 
 }
 
-func TestWriteRecordsFromTableMeta(t *testing.T) {
+func TestWriteRecordsFromTableDef(t *testing.T) {
 	table, err := newDefaultTestTable(false)
 	if err != nil {
 		t.Fatal(err)
@@ -141,7 +141,7 @@ func TestWriteRecordsFromTableMeta(t *testing.T) {
 		t.Fatal(err)
 	}
 	err = record.Set(0, uint64(42))
-	v, err := record.tableMeta.Next()
+	v, err := record.tableDef.Next()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -197,7 +197,7 @@ func TestWriteRecordsFromTableMeta(t *testing.T) {
 
 }
 
-func TestRecordFromTableMetaTODO(t *testing.T) {
+func TestRecordFromTableDefTODO(t *testing.T) {
 	table, err := newDefaultTestTable(false)
 	if err != nil {
 		t.Fatal(err)

@@ -52,19 +52,20 @@ func preparedValueFormat(dialect Dialect, counter int) (string, error) {
 
 }
 
-func createTableString(dialect Dialect, t *TableMeta) {
+func createTableString(dialect Dialect, t *TableDef) {
 
 }
 
 type Dialect interface {
 	Constraints(FieldMeta) (string, error)
-	CreateTableString(t *TableMeta) (string, error)
+	CreateTableString(t *TableDef) (string, error)
 	DropTableIfExistsString(tableName string) (string, error)
 	ExistsString(table, field string, id uint64) (string, error)
 	ExistsDeepString(*Record) (string, error)
 	FieldType(FieldMeta) (string, error)
-	ForeignKeys(t *TableMeta) (string, error)
+	ForeignKeys(t *TableDef) (string, error)
 	Pragmas() []string
 	PreparedValueFormat(counter int) (string, error)
 	UpdateString(*Record) (string, error)
+	IsUniqueContraintFailedError(error) bool
 }

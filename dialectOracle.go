@@ -8,7 +8,7 @@ import (
 type DialectOracle struct {
 }
 
-func (d *DialectOracle) CreateTableString(t *TableMeta) string {
+func (d *DialectOracle) CreateTableString(t *TableDef) string {
 	log.Println("TODO")
 	return "TODO"
 }
