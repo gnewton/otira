@@ -87,11 +87,11 @@ func (d *DialectSqlite3) oneToManyForeignKeys(t *TableDef) string {
 	if t.oneToMany == nil {
 		return ""
 	}
-	log.Println(t.GetName())
+	log.Println(t.Name())
 	for i := 0; i < len(t.oneToMany); i++ {
 		one2m := t.oneToMany[i]
 		log.Println(one2m)
-		s += ", " + "FOREIGN KEY(" + one2m.leftKeyField.Name() + ") REFERENCES " + one2m.rightTable.GetName() + "(" + one2m.rightKeyField.Name() + ")"
+		s += ", " + "FOREIGN KEY(" + one2m.leftKeyField.Name() + ") REFERENCES " + one2m.rightTable.Name() + "(" + one2m.rightKeyField.Name() + ")"
 	}
 	return s
 }

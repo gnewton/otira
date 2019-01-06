@@ -143,7 +143,7 @@ func newOneToManyTestTable() (*TableDef, *TableDef, Relation, error) {
 
 	relation.leftKeyField = table.GetField(tAddress)
 	if relation.leftKeyField == nil {
-		return nil, nil, nil, errors.New("Unable to find field [" + tAddress + "] in table [" + table.GetName() + "]")
+		return nil, nil, nil, errors.New("Unable to find field [" + tAddress + "] in table [" + table.Name() + "]")
 	}
 	relation.rightKeyField = pk
 

@@ -135,7 +135,7 @@ func (t *TableDef) Fields() []FieldDef {
 	return t.fields
 }
 
-func (t *TableDef) GetName() string {
+func (t *TableDef) Name() string {
 	return t.name
 }
 

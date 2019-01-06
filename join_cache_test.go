@@ -76,7 +76,7 @@ func TestJoinCache(t *testing.T) {
 
 	jc := NewJoinCache()
 
-	k, exists, err := jc.GetJoinKey(rec)
+	k, exists, err := jc.MakeJoinKey(rec)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -108,7 +108,7 @@ func TestJoinCacheDuplicate(t *testing.T) {
 
 	jc := NewJoinCache()
 	log.Println(rec)
-	k, exists, err := jc.GetJoinKey(rec)
+	k, exists, err := jc.MakeJoinKey(rec)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -121,7 +121,7 @@ func TestJoinCacheDuplicate(t *testing.T) {
 		t.Fatal(errors.New("Join key should NOT be in the cache"))
 	}
 
-	k, exists, err = jc.GetJoinKey(rec)
+	k, exists, err = jc.MakeJoinKey(rec)
 	if err != nil {
 		t.Fatal(err)
 	}

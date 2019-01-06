@@ -394,7 +394,7 @@ func (pers *Persister) saveRelations(record *Record) error {
 }
 
 func (pers *Persister) saveManyToMany(m2m *ManyToMany, record *Record, relRecord *Record) error {
-	_, exists, err := m2m.cache.GetJoinKey(relRecord)
+	_, exists, err := m2m.cache.MakeJoinKey(relRecord)
 	if err != nil {
 		return err
 	}
@@ -436,7 +436,7 @@ func (pers *Persister) saveJoinRecord(m2m *ManyToMany, left, right uint64) error
 }
 
 func (pers *Persister) saveOneToMany(one2m *OneToMany, record *Record, relRecord *Record) error {
-	k2, exists, err := one2m.cache.GetJoinKey(relRecord)
+	k2, exists, err := one2m.cache.MakeJoinKey(relRecord)
 	if err != nil {
 		return err
 	}

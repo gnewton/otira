@@ -15,7 +15,7 @@ func NewJoinCache() *joinCache {
 	return jc
 }
 
-func (jc *joinCache) GetJoinKey(r *Record) (uint64, bool, error) {
+func (jc *joinCache) MakeJoinKey(r *Record) (uint64, bool, error) {
 	cacheKey, err := makeKey(r)
 	if err != nil {
 		return 0, true, err
@@ -26,7 +26,7 @@ func (jc *joinCache) GetJoinKey(r *Record) (uint64, bool, error) {
 		if r.tableDef.UseRecordPrimaryKeys {
 			pk, ok := r.values[0].(uint64)
 			if !ok {
-				return 0, false, errors.New("Primary key value is not uint64; table=" + r.tableDef.GetName())
+				return 0, false, errors.New("Primary key value is not uint64; table=" + r.tableDef.Name())
 			} else {
 				joinKey = pk
 			}
@@ -67,7 +67,7 @@ func makeKey(r *Record) (string, error) {
 		fm := r.tableDef.joinDiscrimFields[i]
 		j, ok := r.fieldsMap[fm.Name()]
 		if !ok {
-			return "", errors.New("Field name [" + fm.Name() + "] is not a field in table " + r.tableDef.GetName())
+			return "", errors.New("Field name [" + fm.Name() + "] is not a field in table " + r.tableDef.Name())
 		}
 		if i < 0 || i > flen {
 			return "", errors.New("Index out of bounds for field [" + fm.Name() + "]")

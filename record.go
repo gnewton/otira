@@ -165,7 +165,7 @@ func (r *Record) PrimaryKeyValue() (uint64, error) {
 func (r *Record) String() string {
 	var s string
 
-	s += "TableName:" + r.tableDef.GetName()
+	s += "TableName:" + r.tableDef.Name()
 	for i := 0; i < len(r.fields); i++ {
 		s += "\n " + r.fields[i].Name() + ":" + toString(r.values[i])
 	}
