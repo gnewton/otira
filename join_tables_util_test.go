@@ -19,16 +19,16 @@ func newOneToManyDefaultTables() (*TableDef, *TableDef, *OneToMany, error) {
 		return nil, nil, nil, err
 	}
 	one2m := NewOneToMany()
-	one2m.leftTable = addressTable
-	one2m.rightTable = cityTable
+	one2m.LeftTable = addressTable
+	one2m.RightTable = cityTable
 	cityField := addressTable.GetField(CITYFK)
 	if cityField == nil {
 		return nil, nil, nil, errors.New("Cannot find field: " + CITYFK + " in table: " + addressTable.name)
 
 	}
-	one2m.leftKeyField = cityField
-	one2m.rightKeyField = cityTable.PrimaryKey()
-	one2m.rightTableUniqueFields = []FieldDef{cityField}
+	one2m.LeftKeyField = cityField
+	one2m.RightKeyField = cityTable.PrimaryKey()
+	one2m.RightTableUniqueFields = []FieldDef{cityField}
 
 	addressTable.AddOneToMany(one2m)
 	addressTable.SetDone()

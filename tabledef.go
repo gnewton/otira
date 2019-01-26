@@ -66,22 +66,22 @@ func (t *TableDef) AddManyToMany(m2m *ManyToMany) {
 }
 
 func makeM2MJoinTable(m2m *ManyToMany) error {
-	joinTable, err := NewTableDef(m2m.leftTable.name + "_" + m2m.rightTable.name)
+	joinTable, err := NewTableDef(m2m.LeftTable.name + "_" + m2m.RightTable.name)
 	if err != nil {
 		return err
 	}
 	joinTable.isJoinTable = true
-	m2m.joinTable = joinTable
+	m2m.JoinTable = joinTable
 
 	left := new(FieldDefUint64)
-	left.SetName(m2m.leftTable.name)
+	left.SetName(m2m.LeftTable.name)
 	err = joinTable.Add(left)
 	if err != nil {
 		return err
 	}
 
 	right := new(FieldDefUint64)
-	right.SetName(m2m.rightTable.name)
+	right.SetName(m2m.RightTable.name)
 	err = joinTable.Add(right)
 	if err != nil {
 		return err
@@ -151,12 +151,30 @@ func (t *TableDef) SetDone() error {
 
 // check kto see if there is one and only one primary key
 func (t *TableDef) validate() error {
+	log.Println("validate: " + t.Name())
 	if t == nil {
 		return errors.New("FATAL !!!!!!!!!!!!!!!!!!! TableDef is nil")
 	}
 	if t.fields == nil {
 		return errors.New("fields is nil")
 	}
+
+	for i, _ := range t.manyToMany {
+		m2m := t.manyToMany[i]
+		log.Println(m2m)
+		if len(m2m.RightTableUniqueFields) == 0 {
+			return errors.New("For manytomany involving Table: " + m2m.LeftTable.Name() + " and Table: " + m2m.RightTable.Name() + " has no RightTableUniqueFields, which are needed to uniquely identify the second table")
+		}
+	}
+
+	for i, _ := range t.oneToMany {
+		one2m := t.oneToMany[i]
+		log.Println(one2m)
+		if len(one2m.RightTableUniqueFields) == 0 {
+			return errors.New("For manytomany involving Table: " + one2m.LeftTable.Name() + " and Table: " + one2m.RightTable.Name() + " has no RightTableUniqueFields, which are needed to uniquely identify the second table")
+		}
+	}
+
 	return nil
 }
 
@@ -237,6 +255,10 @@ func (t *TableDef) Add(f FieldDef) error {
 		if !ok {
 			return errors.New("First FieldDef added must be primary key type FieldDefUint64")
 		}
+	}
+
+	if _, ok := t.fieldsMap[f.Name()]; ok {
+		return errors.New("Field with name: [" + f.Name() + "] is already in table def")
 	}
 
 	t.fieldsMap[f.Name()] = f

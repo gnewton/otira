@@ -17,8 +17,8 @@ func baseFieldDefErrors(f FieldDef) error {
 
 func findRelationPK(record *Record, rel *OneToMany) (string, error) {
 	var k string
-	for i := 0; i < len(rel.rightTableUniqueFields); i++ {
-		fname := rel.rightTableUniqueFields[i].Name()
+	for i := 0; i < len(rel.RightTableUniqueFields); i++ {
+		fname := rel.RightTableUniqueFields[i].Name()
 		lookup, ok := record.fieldsMap[fname]
 
 		if !ok {

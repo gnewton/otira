@@ -281,8 +281,8 @@ func newManyToManyDefaultTables() (*TableDef, *TableDef, *ManyToMany, error) {
 	}
 
 	m2m := NewManyToMany()
-	m2m.leftTable = teamTable
-	m2m.rightTable = personTable
+	m2m.LeftTable = teamTable
+	m2m.RightTable = personTable
 	teamTable.AddManyToMany(m2m)
 
 	return teamTable, personTable, m2m, err

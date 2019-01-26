@@ -136,16 +136,16 @@ func newOneToManyTestTable() (*TableDef, *TableDef, Relation, error) {
 	relation.name = ADDRESS
 	table.AddOneToMany(relation)
 
-	relation.leftTable = table
-	relation.rightTable = address
+	relation.LeftTable = table
+	relation.RightTable = address
 
-	relation.rightTableUniqueFields = []FieldDef{city, street}
+	relation.RightTableUniqueFields = []FieldDef{city, street}
 
-	relation.leftKeyField = table.GetField(tAddress)
-	if relation.leftKeyField == nil {
+	relation.LeftKeyField = table.GetField(tAddress)
+	if relation.LeftKeyField == nil {
 		return nil, nil, nil, errors.New("Unable to find field [" + tAddress + "] in table [" + table.Name() + "]")
 	}
-	relation.rightKeyField = pk
+	relation.RightKeyField = pk
 
 	return table, address, relation, nil
 }

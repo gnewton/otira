@@ -6,11 +6,11 @@ type Relation interface {
 
 type baseRelation struct {
 	name                   string
-	leftTable              *TableDef
-	rightTable             *TableDef
-	rightTableUniqueFields []FieldDef // fields to find out if a record exists; these fields are used in a lookup
-	leftKeyField           FieldDef
-	rightKeyField          FieldDef
+	LeftTable              *TableDef
+	RightTable             *TableDef
+	RightTableUniqueFields []FieldDef // fields to find out if a record exists; these fields are used in a lookup
+	LeftKeyField           FieldDef
+	RightKeyField          FieldDef
 	cache                  *joinCache
 }
 
@@ -28,7 +28,7 @@ func (otm *OneToMany) String() string {
 
 type ManyToMany struct {
 	baseRelation
-	joinTable *TableDef
+	JoinTable *TableDef
 	pkCache   map[string]struct{}
 }
 

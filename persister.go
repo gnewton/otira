@@ -170,9 +170,9 @@ func (pers *Persister) createManyToManyTables(tm *TableDef) error {
 	log.Println(len(tm.manyToMany))
 	for i := 0; i < len(tm.manyToMany); i++ {
 		m2m := tm.manyToMany[i]
-		log.Println(m2m.leftTable.name, m2m.rightTable.name)
-		log.Println(m2m.joinTable)
-		err := pers.createTable(m2m.joinTable)
+		log.Println(m2m.LeftTable.name, m2m.RightTable.name)
+		log.Println(m2m.JoinTable)
+		err := pers.createTable(m2m.JoinTable)
 		if err != nil {
 			return err
 		}
@@ -422,7 +422,7 @@ func (pers *Persister) saveManyToMany(m2m *ManyToMany, record *Record, relRecord
 
 func (pers *Persister) saveJoinRecord(m2m *ManyToMany, left, right uint64) error {
 
-	rec, err := m2m.joinTable.NewRecord()
+	rec, err := m2m.JoinTable.NewRecord()
 	if err != nil {
 		return err
 	}
@@ -445,7 +445,7 @@ func (pers *Persister) saveOneToMany(one2m *OneToMany, record *Record, relRecord
 	//return errors.New("Cannot find relation record primary key")
 	//} else {
 	//record.SetByName(one2m.leftKeyField.Name(), relRecord.values[relRecordValueIndex])
-	record.SetByName(one2m.leftKeyField.Name(), k2)
+	record.SetByName(one2m.LeftKeyField.Name(), k2)
 	//}
 	if !exists {
 		pers.Save(relRecord)

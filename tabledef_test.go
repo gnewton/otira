@@ -97,3 +97,31 @@ func TestCreatePreparedStatementInsert(t *testing.T) {
 	//t.Fatal(err)
 
 }
+
+func TestAddTwoFieldsWithSameName(t *testing.T) {
+	table, err := NewTableDef(tablename)
+	if err != nil {
+		t.Fatal(err)
+	}
+	f := new(FieldDefUint64)
+	f.SetName(f_firstname)
+	t.Log(f.String())
+	err = table.Add(f)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	f2 := new(FieldDefUint64)
+	f2.SetName("fred")
+	err = table.Add(f2)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	f3 := new(FieldDefUint64)
+	f3.SetName("fred")
+	err = table.Add(f3)
+	if err == nil {
+		t.Fatal(err)
+	}
+}
