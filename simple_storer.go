@@ -25,6 +25,7 @@ func (st *SimpleStorer) Initialize(db *sql.DB, dbopts *DBOptions, tms ...*TableD
 	st.dbopts = dbopts
 
 	if st.dbopts != nil && st.dbopts.CreateTables {
+
 		err = pers.CreateTables(tms...)
 		if err != nil {
 			return err

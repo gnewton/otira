@@ -70,7 +70,7 @@ func (pers *Persister) initPragmas() error {
 	return nil
 }
 
-func (pers *Persister) CreateTables(tms ...*TableDef) error {
+func (pers *Persister) DeleteTables(tms ...*TableDef) error {
 	pers.createMutex.Lock()
 	defer pers.createMutex.Unlock()
 
@@ -81,18 +81,46 @@ func (pers *Persister) CreateTables(tms ...*TableDef) error {
 		return errors.New("CreateTables: Table list is empty")
 	}
 	if pers.doneCreatingTables {
-		return errors.New("CreateTables can only be called once")
+		return errors.New("Cannot delete tables that were created in this instance")
 	}
+	return nil
+}
 
-	if pers.db == nil {
-		return errors.New("db cannot be nil")
-	}
-	if tms == nil {
-		return errors.New("TableDef cannot be nil")
-	}
+func verifyTableDef(pers *Persister, tms ...*TableDef) error {
+	for i := 0; i < len(tms); i++ {
+		tm := tms[i]
+		if tm == nil {
+			return errors.New("TableDef cannot be nil")
+		}
+		if tm.created {
+			continue
+		}
 
-	if pers.dialect == nil {
-		return errors.New("Dialect cannot be nil")
+		err := pers.deleteTable(tm)
+		//err := createTable(pers.db, pers.dialect, tm)
+
+		if err != nil {
+			return err
+		}
+
+	}
+	for i := 0; i < len(tms); i++ {
+		tm := tms[i]
+
+		err := pers.deleteRelationTables(tm)
+		if err != nil {
+			return err
+		}
+
+	}
+	return nil
+}
+
+func (pers *Persister) CreateTables(tms ...*TableDef) error {
+	pers.createMutex.Lock()
+	defer pers.createMutex.Unlock()
+	if err := verifyTableDef(pers, tms...); err != nil {
+		return err
 	}
 
 	for i := 0; i < len(tms); i++ {
@@ -105,6 +133,17 @@ func (pers *Persister) CreateTables(tms ...*TableDef) error {
 		}
 
 		err := pers.createTable(tm)
+		//err := createTable(pers.db, pers.dialect, tm)
+
+		if err != nil {
+			return err
+		}
+
+	}
+	for i := 0; i < len(tms); i++ {
+		tm := tms[i]
+
+		err := pers.createRelationTables(tm)
 		if err != nil {
 			return err
 		}
@@ -116,18 +155,7 @@ func (pers *Persister) CreateTables(tms ...*TableDef) error {
 
 }
 
-func (pers *Persister) createTable(tm *TableDef) error {
-	if tm == nil {
-		return errors.New("Table is nil")
-	}
-
-	createTableString, err := tm.createTableString(pers.dialect)
-	log.Println("CREATE::::::::: " + createTableString)
-	if err != nil {
-		log.Println(err)
-		return err
-	}
-
+func (pers *Persister) deleteTable(tm *TableDef) error {
 	// Delete table
 	sql, err := pers.dialect.DropTableIfExistsString(tm.name)
 	if err != nil {
@@ -137,6 +165,35 @@ func (pers *Persister) createTable(tm *TableDef) error {
 	if err != nil {
 		return err
 	}
+
+	return nil
+}
+
+func (pers *Persister) createTable(tm *TableDef) error {
+	err := createTable(pers.db, pers.dialect, tm)
+	if err != nil {
+		return err
+	}
+
+	if true {
+		return nil
+	}
+
+	if tm == nil {
+		return errors.New("Table is nil")
+	}
+
+	if tm.created {
+		return nil
+	}
+
+	createTableString, err := tm.createTableString(pers.dialect)
+	log.Println("CREATE::::::::: " + createTableString)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+
 	log.Println("createTableString=" + createTableString)
 
 	// Create the table in the db
@@ -147,6 +204,42 @@ func (pers *Persister) createTable(tm *TableDef) error {
 	tm.created = true
 	err = pers.createRelationTables(tm)
 	return err
+}
+
+func (pers *Persister) deleteRelationTables(tm *TableDef) error {
+	err := pers.deleteOneToManyTables(tm)
+	if err != nil {
+		return err
+	}
+	err = pers.deleteManyToManyTables(tm)
+	return err
+}
+
+func (pers *Persister) deleteOneToManyTables(tm *TableDef) error {
+	//TODO
+
+	log.Println("TODO")
+	//return errors.New("TODO")
+	return nil
+}
+
+func (pers *Persister) deleteManyToManyTables(tm *TableDef) error {
+	log.Println("Delete M2M")
+	log.Println(len(tm.manyToMany))
+	for i := 0; i < len(tm.manyToMany); i++ {
+		m2m := tm.manyToMany[i]
+		if m2m == nil {
+			return errors.New("m2m tabledef is nil")
+		}
+		log.Println(m2m.LeftTable.name, m2m.RightTable.name)
+		log.Println(m2m.JoinTable)
+		// FIXX this should be pers.CreateTable: this table migh have relation tables too
+		err := pers.deleteTable(m2m.JoinTable)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (pers *Persister) createRelationTables(tm *TableDef) error {
@@ -171,8 +264,10 @@ func (pers *Persister) createManyToManyTables(tm *TableDef) error {
 	log.Println(len(tm.manyToMany))
 	for i := 0; i < len(tm.manyToMany); i++ {
 		m2m := tm.manyToMany[i]
-		log.Println(m2m.LeftTable.name, m2m.RightTable.name)
-		log.Println(m2m.JoinTable)
+		log.Println("leftTable:", m2m.LeftTable.name, "rightTable:", m2m.RightTable.name)
+		log.Println("jointTable", m2m.JoinTable.name)
+
+		// FIXX this should be pers.CreateTable: this table migh have relation tables too
 		err := pers.createTable(m2m.JoinTable)
 		if err != nil {
 			return err
