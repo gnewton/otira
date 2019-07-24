@@ -19,6 +19,9 @@ type Dialect interface {
 	Pragmas() []string
 	PreparedValueFormat(counter int) (string, error)
 	UpdateString(*Record) (string, error)
+
+	NumAllowedActiveTransactions() int
+	OneTransactionPerConnection() bool
 }
 
 const CREATE_TABLE = "CREATE TABLE"

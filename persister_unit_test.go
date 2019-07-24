@@ -7,7 +7,7 @@ import (
 )
 
 func TestNewPersist_NilDb(t *testing.T) {
-	_, err := NewPersister(nil, new(DialectSqlite3))
+	_, err := NewPersister(nil, new(DialectSqlite3), 1000)
 	if err == nil {
 		t.Fatal(err)
 	}
@@ -20,7 +20,7 @@ func TestNewPersist_NilDialect(t *testing.T) {
 	}
 	defer db.Close()
 
-	_, err = NewPersister(db, nil)
+	_, err = NewPersister(db, nil, 1000)
 	if err == nil {
 		t.Fatal(err)
 	}
@@ -33,7 +33,7 @@ func TestNewPersist_CreateTablesNilList(t *testing.T) {
 	}
 	defer db.Close()
 
-	pers, err := NewPersister(db, new(DialectSqlite3))
+	pers, err := NewPersister(db, new(DialectSqlite3), 1000)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -52,7 +52,7 @@ func TestNewPersist_CreateTableNil(t *testing.T) {
 	}
 	defer db.Close()
 
-	pers, err := NewPersister(db, new(DialectSqlite3))
+	pers, err := NewPersister(db, new(DialectSqlite3), 1000)
 	if err != nil {
 		t.Fatal(err)
 	}

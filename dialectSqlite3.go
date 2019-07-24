@@ -196,6 +196,14 @@ func (d *DialectSqlite3) IsUniqueContraintFailedError(err error) bool {
 	return strings.HasPrefix(err.Error(), "UNIQUE constraint failed:")
 }
 
+func (d *DialectSqlite3) NumAllowedActiveTransactions() int {
+	return 1
+}
+
+func (d *DialectSqlite3) OneTransactionPerConnection() bool {
+	return true
+}
+
 func (d *DialectSqlite3) CreateIndexString(name string, tableName string, fieldNames []string) (string, error) {
 	if name == "" {
 		return "", errors.New("Empty index name")

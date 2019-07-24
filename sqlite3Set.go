@@ -37,7 +37,7 @@ func NewSqlite3Set(dir string) (Set, error) {
 	if err != nil {
 		return nil, err
 	}
-	set.pers, err = NewPersister(db, new(DialectSqlite3))
+	set.pers, err = NewPersister(db, new(DialectSqlite3), 1000)
 	if err != nil {
 		return nil, err
 	}

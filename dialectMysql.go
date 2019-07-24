@@ -15,3 +15,11 @@ func (d *DialectMysql) CreateTableString(t *TableDef) string {
 func (d *DialectMysql) PreparedValueFormat(counter int) string {
 	return "?"
 }
+
+func (d *DialectMysql) NumAllowedActiveTransactions() int {
+	return 9999
+}
+
+func (d *DialectMysql) OneTransactionPerConnection() bool {
+	return true
+}

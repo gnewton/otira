@@ -8,23 +8,23 @@ import (
 )
 
 type Persister struct {
-	TransactionSize    int
-	createMutex        sync.Mutex
-	db                 *sql.DB
-	dialect            Dialect
-	doneCreatingTables bool
-	preparedStatements map[string]*sql.Stmt
-	preparedStrings    map[string]string
-	relationPKCacheMap map[Relation]map[string]int64
-	saveMutex          sync.Mutex
-	transactionCounter int
-	tx                 *sql.Tx
-	SupportUpdates     bool
+	TransactionSize        int
+	createMutex            sync.Mutex
+	db                     *sql.DB
+	dialect                Dialect
+	doneCreatingTables     bool
+	preparedStatementCache map[string]*sql.Stmt
+	preparedStrings        map[string]string
+	relationPKCacheMap     map[Relation]map[string]int64
+	saveMutex              sync.Mutex
+	transactionCounter     int
+	tx                     *sql.Tx
+	SupportUpdates         bool
 }
 
 // needs to also have
 //func NewPersister(ctx context.Context, db *sql.DB, dialect Dialect, size int) (*Persister, error) {
-func NewPersister(db *sql.DB, dialect Dialect) (*Persister, error) {
+func NewPersister(db *sql.DB, dialect Dialect, txSize int) (*Persister, error) {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	var err error
 	//log.SetFlags(log.LstdFlags | log.Lshortfile)
@@ -45,9 +45,10 @@ func NewPersister(db *sql.DB, dialect Dialect) (*Persister, error) {
 	}
 
 	pers.initPragmas()
-	pers.TransactionSize = 500000
+	pers.TransactionSize = txSize
+	log.Println("txSize=", pers.TransactionSize)
 
-	pers.preparedStatements = make(map[string]*sql.Stmt, 0)
+	pers.preparedStatementCache = make(map[string]*sql.Stmt, 0)
 	pers.preparedStrings = make(map[string]string, 0)
 	pers.relationPKCacheMap = make(map[Relation]map[string]int64)
 	pers.doneCreatingTables = false
@@ -74,10 +75,10 @@ func (pers *Persister) CreateTables(tms ...*TableDef) error {
 	defer pers.createMutex.Unlock()
 
 	if tms == nil {
-		return errors.New("Table list is nil")
+		return errors.New("CreateTables: Table list is nil")
 	}
 	if len(tms) == 0 {
-		return errors.New("Table list is empty")
+		return errors.New("CreateTables: Table list is empty")
 	}
 	if pers.doneCreatingTables {
 		return errors.New("CreateTables can only be called once")
@@ -220,11 +221,11 @@ func (pers *Persister) commit() error {
 }
 
 func (pers *Persister) closePreparedStatements() error {
-	for _, stmt := range pers.preparedStatements {
+	for _, stmt := range pers.preparedStatementCache {
 		if stmt == nil {
 			return errors.New("Prepared statement should not be nil")
 		}
-		log.Println("Closing")
+		log.Println("Closing Prepared Statement")
 		log.Println(stmt)
 		err := stmt.Close()
 		if err != nil {
@@ -302,7 +303,7 @@ func (pers *Persister) preparedString(record *Record) (string, error) {
 func (pers *Persister) preparedStatement(record *Record) (*sql.Stmt, error) {
 	var ok bool
 	var stmt *sql.Stmt
-	if stmt, ok = pers.preparedStatements[record.tableDef.name]; !ok {
+	if stmt, ok = pers.preparedStatementCache[record.tableDef.name]; !ok {
 		//preparedString, err := record.tableDef.CreatePreparedStatementInsertAllFields(pers.dialect)
 		preparedString, err := pers.preparedString(record)
 		if err != nil {
@@ -316,7 +317,7 @@ func (pers *Persister) preparedStatement(record *Record) (*sql.Stmt, error) {
 		if err != nil {
 			return nil, err
 		}
-		pers.preparedStatements[record.tableDef.name] = stmt
+		pers.preparedStatementCache[record.tableDef.name] = stmt
 		pers.preparedStrings[record.tableDef.name] = preparedString
 	} else {
 		//log.Println("Prepared statement cache hit")
@@ -333,7 +334,7 @@ func (pers *Persister) commitAndBeginTx() error {
 	if err != nil {
 		return err
 	}
-	pers.preparedStatements = make(map[string]*sql.Stmt, 0)
+	pers.preparedStatementCache = make(map[string]*sql.Stmt, 0)
 	log.Println("End TX; start new TX")
 	pers.transactionCounter = 0
 
@@ -377,11 +378,11 @@ func (pers *Persister) saveRelations(record *Record) error {
 		relRecord := record.relationRecords[i].record
 		switch rel := relation.(type) {
 		case *OneToMany:
-
 			err = pers.saveOneToMany(rel, record, relRecord)
 			if err != nil {
 				return err
 			}
+
 		case *ManyToMany:
 			err = pers.saveManyToMany(rel, record, relRecord)
 			if err != nil {

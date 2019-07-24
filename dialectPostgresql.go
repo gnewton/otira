@@ -86,3 +86,11 @@ func (d *DialectPostgresql) IsUniqueContraintFailedError(err error) bool {
 func (d *DialectPostgresql) CreateIndexString(name string, tableName string, fieldNames []string) (string, error) {
 	return "", errors.New("TODO")
 }
+
+func (d *DialectPostgresql) NumAllowedActiveTransactions() int {
+	return 9999
+}
+
+func (d *DialectPostgresql) OneTransactionPerConnection() bool {
+	return false
+}

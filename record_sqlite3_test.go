@@ -167,7 +167,7 @@ func TestWriteRecordsFromTableDef(t *testing.T) {
 	defer db.Close()
 
 	dialect := new(DialectSqlite3)
-	pers, err := NewPersister(db, dialect)
+	pers, err := NewPersister(db, dialect, 1000)
 	if err != nil {
 		t.Fatal(err)
 	}

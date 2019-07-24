@@ -21,7 +21,7 @@ func simpleOneToMany() (*Persister, *TableDef, *TableDef, *OneToMany, error) {
 	if err != nil {
 		return nil, nil, nil, nil, err
 	}
-	pers, err := NewPersister(db, NewDialectSqlite3(nil, false))
+	pers, err := NewPersister(db, NewDialectSqlite3(nil, false), 1000)
 	if err != nil {
 		return nil, nil, nil, nil, err
 	}

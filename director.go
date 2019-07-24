@@ -30,7 +30,7 @@ func NewDirector(db *sql.DB, dialect Dialect, size int) (*Director, error) {
 		return nil, errors.New("Size must be > 0")
 	}
 
-	pers, err := NewPersister(db, dialect)
+	pers, err := NewPersister(db, dialect, 10000)
 	if err != nil {
 		return nil, err
 	}
@@ -79,6 +79,7 @@ func (dir *Director) Done() error {
 	return nil
 }
 
+// This does the actual saving
 func (dir *Director) start() {
 	defer dir.wg.Done()
 	n := 0
@@ -108,7 +109,7 @@ func (dir *Director) start() {
 			} else {
 				log.Println(strconv.Itoa(n) + " A--nil--")
 			}
-			//pers.Save(record)
+			dir.persister.Save(record)
 
 		}
 	}

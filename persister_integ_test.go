@@ -14,7 +14,7 @@ func TestPersistInstantiate(t *testing.T) {
 	}
 	defer db.Close()
 
-	pers, err := NewPersister(db, new(DialectSqlite3))
+	pers, err := NewPersister(db, new(DialectSqlite3), 1000)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -29,7 +29,7 @@ func TestPersistFewRecords(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
-	pers, err := NewPersister(db, new(DialectSqlite3))
+	pers, err := NewPersister(db, new(DialectSqlite3), 1000)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -83,7 +83,7 @@ func TestSaveThenUpdateRecord(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
-	pers, err := NewPersister(db, new(DialectSqlite3))
+	pers, err := NewPersister(db, new(DialectSqlite3), 1000)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -138,7 +138,7 @@ func TestSaveThenUpdateRecord(t *testing.T) {
 
 ///// FAILS /////
 func TestPersistNoDbFail(t *testing.T) {
-	_, err := NewPersister(nil, new(DialectSqlite3))
+	_, err := NewPersister(nil, new(DialectSqlite3), 1000)
 	if err == nil {
 		t.Fatal(err)
 	}
@@ -151,7 +151,7 @@ func TestNoDialectFail(t *testing.T) {
 	}
 	defer db.Close()
 
-	_, err = NewPersister(db, nil)
+	_, err = NewPersister(db, nil, 1000)
 	if err == nil {
 		t.Fatal(err)
 	}
@@ -165,7 +165,7 @@ func TestPersistPragmas(t *testing.T) {
 	}
 	defer db.Close()
 
-	pers, err := NewPersister(db, new(DialectSqlite3))
+	pers, err := NewPersister(db, new(DialectSqlite3), 1000)
 	if err != nil {
 		t.Fatal(err)
 	}
