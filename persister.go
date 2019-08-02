@@ -132,8 +132,8 @@ func (pers *Persister) CreateTables(tms ...*TableDef) error {
 			continue
 		}
 
-		err := pers.createTable(tm)
-		//err := createTable(pers.db, pers.dialect, tm)
+		//err := pers.createTable(tm)
+		err := createTable(pers.db, pers.dialect, tm)
 
 		if err != nil {
 			return err
@@ -169,42 +169,10 @@ func (pers *Persister) deleteTable(tm *TableDef) error {
 	return nil
 }
 
-func (pers *Persister) createTable(tm *TableDef) error {
-	err := createTable(pers.db, pers.dialect, tm)
-	if err != nil {
-		return err
-	}
-
-	if true {
-		return nil
-	}
-
-	if tm == nil {
-		return errors.New("Table is nil")
-	}
-
-	if tm.created {
-		return nil
-	}
-
-	createTableString, err := tm.createTableString(pers.dialect)
-	log.Println("CREATE::::::::: " + createTableString)
-	if err != nil {
-		log.Println(err)
-		return err
-	}
-
-	log.Println("createTableString=" + createTableString)
-
-	// Create the table in the db
-	_, err = exec(pers.db, createTableString)
-	if err != nil {
-		return err
-	}
-	tm.created = true
-	err = pers.createRelationTables(tm)
-	return err
-}
+// func (pers *Persister) createTable(tm *TableDef) error {
+// 	err := createTable(pers.db, pers.dialect, tm)
+// 	return err
+// }
 
 func (pers *Persister) deleteRelationTables(tm *TableDef) error {
 	err := pers.deleteOneToManyTables(tm)
@@ -268,7 +236,17 @@ func (pers *Persister) createManyToManyTables(tm *TableDef) error {
 		log.Println("jointTable", m2m.JoinTable.name)
 
 		// FIXX this should be pers.CreateTable: this table migh have relation tables too
-		err := pers.createTable(m2m.JoinTable)
+		//err := pers.createTable(m2m.JoinTable)
+		//err := pers.createTable(m2m.JoinTable)
+		err := createTable(pers.db, pers.dialect, m2m.JoinTable)
+		if err != nil {
+			return err
+		}
+		err = createTable(pers.db, pers.dialect, m2m.RightTable)
+		if err != nil {
+			return err
+		}
+		err = createTable(pers.db, pers.dialect, m2m.LeftTable)
 		if err != nil {
 			return err
 		}

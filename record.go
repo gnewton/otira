@@ -7,6 +7,14 @@ import (
 	"strconv"
 )
 
+type saveStatus int
+
+const (
+	unsaved saveStatus = iota
+	inPreparation
+	saved
+)
+
 type Record struct {
 	//fieldsMap       map[string]FieldDef
 	fields          []FieldDef
@@ -18,6 +26,7 @@ type Record struct {
 	tx              *sql.Tx
 	valueIsSet      []bool
 	values          []interface{}
+	status          saveStatus
 }
 
 type RelationRecord struct {
@@ -25,7 +34,7 @@ type RelationRecord struct {
 	relation Relation
 }
 
-func (r *Record) Prepare(tx *sql.Tx) error {
+func (r *Record) PrepareX(tx *sql.Tx) error {
 
 	if r.tx == tx {
 		if r.stmt != nil {

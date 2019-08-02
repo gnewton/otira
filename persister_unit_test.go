@@ -45,21 +45,21 @@ func TestNewPersist_CreateTablesNilList(t *testing.T) {
 
 }
 
-func TestNewPersist_CreateTableNil(t *testing.T) {
-	db, err := sql.Open("sqlite3", ":memory:")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer db.Close()
+// func TestNewPersist_CreateTableNil(t *testing.T) {
+// 	db, err := sql.Open("sqlite3", ":memory:")
+// 	if err != nil {
+// 		t.Fatal(err)
+// 	}
+// 	defer db.Close()
 
-	pers, err := NewPersister(db, new(DialectSqlite3), 1000)
-	if err != nil {
-		t.Fatal(err)
-	}
+// 	pers, err := NewPersister(db, new(DialectSqlite3), 1000)
+// 	if err != nil {
+// 		t.Fatal(err)
+// 	}
 
-	err = pers.createTable(nil)
-	if err == nil {
-		t.Fatal(err)
-	}
+// 	err = pers.createTable(nil)
+// 	if err == nil {
+// 		t.Fatal(err)
+// 	}
 
-}
+// }

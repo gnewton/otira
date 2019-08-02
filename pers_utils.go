@@ -15,6 +15,10 @@ func createTable(db *sql.DB, dialect Dialect, tm *TableDef) error {
 		return errors.New("createTable: DB is nil")
 	}
 
+	if tm.created {
+		return nil
+	}
+
 	createTableString, err := tm.createTableString(dialect)
 	log.Println("CREATE::::::::: " + createTableString)
 	if err != nil {
@@ -23,14 +27,14 @@ func createTable(db *sql.DB, dialect Dialect, tm *TableDef) error {
 	}
 
 	// Delete table
-	sql, err := dialect.DropTableIfExistsString(tm.name)
-	if err != nil {
-		return err
-	}
-	_, err = exec(db, sql)
-	if err != nil {
-		return err
-	}
+	// sql, err := dialect.DropTableIfExistsString(tm.name)
+	// if err != nil {
+	// 	return err
+	// }
+	// _, err = exec(db, sql)
+	// if err != nil {
+	// 	return err
+	// }
 	log.Println("createTableString=" + createTableString)
 
 	// Create the table in the db
@@ -40,4 +44,27 @@ func createTable(db *sql.DB, dialect Dialect, tm *TableDef) error {
 	}
 	tm.created = true
 	return err
+}
+
+func deleteTable(db *sql.DB, dialect Dialect, tm *TableDef) error {
+	if tm == nil {
+		return errors.New("createTable: Table is nil")
+	}
+
+	if db == nil {
+		return errors.New("createTable: DB is nil")
+	}
+
+	//Delete table
+	sql, err := dialect.DropTableIfExistsString(tm.name)
+	if err != nil {
+		return err
+	}
+	_, err = exec(db, sql)
+	if err != nil {
+		return err
+	}
+	log.Println("Table deleted:" + tm.name)
+	tm.created = false
+	return nil
 }
