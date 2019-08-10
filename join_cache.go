@@ -6,16 +6,16 @@ import (
 )
 
 type joinCache struct {
-	joinKeys map[string]uint64
+	joinKeys map[string]int64
 }
 
 func NewJoinCache() *joinCache {
 	jc := new(joinCache)
-	jc.joinKeys = make(map[string]uint64)
+	jc.joinKeys = make(map[string]int64)
 	return jc
 }
 
-func (jc *joinCache) MakeJoinKey(r *Record) (uint64, bool, error) {
+func (jc *joinCache) MakeJoinKey(r *Record) (int64, bool, error) {
 	cacheKey, err := makeKey(r)
 	if err != nil {
 		return 0, true, err
@@ -24,18 +24,15 @@ func (jc *joinCache) MakeJoinKey(r *Record) (uint64, bool, error) {
 	if !exists {
 		// New record: Get the next primary key for the table
 		if r.tableDef.UseRecordPrimaryKeys {
-			pk, ok := r.values[0].(uint64)
+			pk, ok := r.values[0].(int64)
 			if !ok {
-				return 0, false, errors.New("Primary key value is not uint64; table=" + r.tableDef.Name())
+				return 0, false, errors.New("Primary key value is not int64; table=" + r.tableDef.Name())
 			} else {
 				joinKey = pk
 			}
 
 		} else {
-			joinKey, err = r.tableDef.Next()
-			if err != nil {
-				return 0, true, err
-			}
+			joinKey = r.tableDef.Next()
 			r.values[0] = joinKey
 		}
 		jc.joinKeys[cacheKey] = joinKey

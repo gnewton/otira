@@ -5,7 +5,7 @@ import (
 	"log"
 )
 
-//Assumes 0th field is primary key, type FieldDefUint64
+//Assumes 0th field is primary key, type FieldDefInt64
 type TableDef struct {
 	ICounter
 	UseRecordPrimaryKeys bool
@@ -73,14 +73,14 @@ func makeM2MJoinTable(m2m *ManyToMany) error {
 	joinTable.isJoinTable = true
 	m2m.JoinTable = joinTable
 
-	left := new(FieldDefUint64)
+	left := new(FieldDefInt64)
 	left.SetName(m2m.LeftTable.name)
 	err = joinTable.Add(left)
 	if err != nil {
 		return err
 	}
 
-	right := new(FieldDefUint64)
+	right := new(FieldDefInt64)
 	right.SetName(m2m.RightTable.name)
 	err = joinTable.Add(right)
 	if err != nil {
@@ -199,10 +199,7 @@ func (t *TableDef) NewRecordSomeFields(fields ...FieldDef) (*Record, error) {
 	}
 	//log.Println("fields", fields)
 	if !t.UseRecordPrimaryKeys {
-		pk, err := t.Next()
-		if err != nil {
-			return nil, err
-		}
+		pk := t.Next()
 		rec.SetByName(t.PrimaryKey().Name(), pk)
 	}
 	rec.SetByName(t.PrimaryKey().Name(), -1)
@@ -251,9 +248,9 @@ func (t *TableDef) Add(f FieldDef) error {
 
 	// First field?
 	if len(t.fields) == 0 {
-		_, ok := f.(*FieldDefUint64)
+		_, ok := f.(*FieldDefInt64)
 		if !ok {
-			return errors.New("First FieldDef added must be primary key type FieldDefUint64")
+			return errors.New("First FieldDef added must be primary key type FieldDefInt64")
 		}
 	}
 

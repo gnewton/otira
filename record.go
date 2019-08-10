@@ -15,6 +15,8 @@ const (
 	saved
 )
 
+const UnassignedPK = -99
+
 type Record struct {
 	//fieldsMap       map[string]FieldDef
 	fields          []FieldDef
@@ -32,31 +34,6 @@ type Record struct {
 type RelationRecord struct {
 	record   *Record
 	relation Relation
-}
-
-func (r *Record) PrepareX(tx *sql.Tx) error {
-
-	if r.tx == tx {
-		if r.stmt != nil {
-			return nil
-		}
-	} else {
-		r.tx = tx
-	}
-
-	var err error
-	if r.preparedString == "" {
-		r.preparedString, err = r.tableDef.CreatePreparedStatementInsertFromRecord(new(DialectSqlite3), r)
-		if err != nil {
-			return err
-		}
-	}
-	r.stmt, err = r.tx.Prepare(r.preparedString)
-	if err != nil {
-		return err
-	}
-	return nil
-
 }
 
 func (r *Record) Values() []interface{} {
@@ -157,18 +134,19 @@ func (r *Record) Set(i int, v interface{}) error {
 	}
 	r.values[i] = v
 	r.valueIsSet[i] = true
+	log.Println("true")
 	return nil
 }
 
-func (r *Record) PrimaryKeyValue() (uint64, error) {
+func (r *Record) PrimaryKeyValue() (int64, error) {
 	switch v := r.values[0].(type) {
-	case uint64:
+	case int64:
 		return v, nil
 	}
 	log.Println("+++++++++++")
 	log.Println(r.values[0])
 	log.Println("+++++++++++")
-	return 0, errors.New("Primary key is not uint64")
+	return 0, errors.New("Primary key is not int64")
 }
 
 func (r *Record) String() string {

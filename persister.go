@@ -3,6 +3,7 @@ package otira
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"log"
 	"sync"
 )
@@ -298,8 +299,7 @@ func (pers *Persister) closePreparedStatements() error {
 		if stmt == nil {
 			return errors.New("Prepared statement should not be nil")
 		}
-		log.Println("Closing Prepared Statement")
-		log.Println(stmt)
+		log.Println("Closing Prepared Statement", stmt)
 		err := stmt.Close()
 		if err != nil {
 			return err
@@ -416,15 +416,21 @@ func (pers *Persister) commitAndBeginTx() error {
 
 // saves record and all related records
 func (pers *Persister) Save(rec *Record) error {
-	// update, err := pers.isUpdate(rec)
-	// if err != nil {
-	// 	return err
-	// }
-	// if update {
-	// 	return pers.Update(rec)
-	// }
+	log.Println("Start save: ", rec.tableDef.name, rec.String())
 
-	err := pers.saveRelations(rec)
+	if unsetPrimaryKey(rec) {
+		return fmt.Errorf("Primary key not set for record %s %v", rec.String(), rec.valueIsSet)
+	}
+
+	update, err := pers.isUpdate(rec)
+	if err != nil {
+		return err
+	}
+	if update {
+		return pers.Update(rec)
+	}
+
+	err = pers.saveRelations(rec)
 	if err != nil {
 		return err
 	}
@@ -474,18 +480,19 @@ func (pers *Persister) saveManyToMany(m2m *ManyToMany, record *Record, relRecord
 	}
 
 	if !exists {
+		// FIXXX
 		err := pers.Save(relRecord)
 		if err != nil {
 			return err
 		}
 	}
-	recordPk, ok := record.values[0].(uint64)
+	recordPk, ok := record.values[0].(int64)
 	if !ok {
-		return errors.New("Record value is not a uint64")
+		return errors.New("Record value is not a int64")
 	}
-	relRecordPk, ok := relRecord.values[0].(uint64)
+	relRecordPk, ok := relRecord.values[0].(int64)
 	if !ok {
-		return errors.New("Relation record value is not a uint64")
+		return errors.New("Relation record value is not a int64")
 	}
 	err = pers.saveJoinRecord(m2m, recordPk, relRecordPk)
 	if err != nil {
@@ -494,7 +501,7 @@ func (pers *Persister) saveManyToMany(m2m *ManyToMany, record *Record, relRecord
 	return nil
 }
 
-func (pers *Persister) saveJoinRecord(m2m *ManyToMany, left, right uint64) error {
+func (pers *Persister) saveJoinRecord(m2m *ManyToMany, left, right int64) error {
 
 	rec, err := m2m.JoinTable.NewRecord()
 	if err != nil {
@@ -510,6 +517,7 @@ func (pers *Persister) saveJoinRecord(m2m *ManyToMany, left, right uint64) error
 }
 
 func (pers *Persister) saveOneToMany(one2m *OneToMany, record *Record, relRecord *Record) error {
+	log.Println("saveOneToMany")
 	k2, exists, err := one2m.cache.MakeJoinKey(relRecord)
 	if err != nil {
 		return err
@@ -523,7 +531,8 @@ func (pers *Persister) saveOneToMany(one2m *OneToMany, record *Record, relRecord
 	//}
 	if !exists {
 		pers.Save(relRecord)
-
+	} else {
+		log.Println("In cache")
 	}
 
 	return nil
@@ -531,7 +540,7 @@ func (pers *Persister) saveOneToMany(one2m *OneToMany, record *Record, relRecord
 
 // Saves single record
 func (pers *Persister) save(rec *Record) error {
-
+	pers.saveMutex.Lock()
 	pers.transactionCounter++
 
 	stmt, err := pers.preparedStatement(rec)
@@ -539,7 +548,6 @@ func (pers *Persister) save(rec *Record) error {
 		return err
 	}
 
-	pers.saveMutex.Lock()
 	defer pers.saveMutex.Unlock()
 
 	if pers.SupportUpdates {
@@ -649,7 +657,7 @@ func (pers *Persister) CreatePreparedStatementInsertSomeFields(tablename string,
 }
 
 func (pers *Persister) isUpdate(rec *Record) (bool, error) {
-	log.Println("isUpdte")
+
 	if !pers.SupportUpdates {
 		return false, nil
 	}
@@ -661,10 +669,10 @@ func (pers *Persister) isUpdate(rec *Record) (bool, error) {
 	log.Println("Writing")
 	log.Println(pk)
 
-	// ok, err := rec.tableDef.writeCache.Contains(pk)
-	// if ok {
-	// 	return true, nil
-	// }
+	ok, err := rec.tableDef.writeCache.Contains(pk)
+	if ok {
+		return true, nil
+	}
 	return false, nil
 }
 
@@ -676,7 +684,7 @@ func (pers *Persister) Update(rec *Record) error {
 }
 
 func (pers *Persister) update(rec *Record) error {
-	log.Println("TODO")
+	log.Println("TODO update")
 	updateString, err := pers.dialect.UpdateString(rec)
 	if err != nil {
 		return err

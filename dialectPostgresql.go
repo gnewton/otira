@@ -63,7 +63,7 @@ func (d *DialectPostgresql) DropTableIfExistsString(tableName string) (string, e
 	return "", errors.New("TODO")
 }
 
-func (d *DialectPostgresql) ExistsString(table, field string, id uint64) (string, error) {
+func (d *DialectPostgresql) ExistsString(table, field string, id int64) (string, error) {
 	log.Println("TODO")
 	return "", errors.New("TODO")
 }

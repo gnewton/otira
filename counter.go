@@ -4,16 +4,16 @@ import (
 	"sync/atomic"
 )
 
-type Counter interface {
-	Next() (uint64, error)
-	Value() (uint64, error)
-}
+// type Counter interface {
+// 	Next() (int64, error)
+// 	Value() (int64, error)
+// }
 
 type ICounter struct {
-	counter uint64
+	counter int64
 }
 
-func (c *ICounter) Next() (uint64, error) {
-	atomic.AddUint64(&c.counter, 1)
-	return c.counter, nil
+func (c *ICounter) Next() int64 {
+	atomic.AddInt64(&c.counter, 1)
+	return c.counter
 }

@@ -41,7 +41,7 @@ func makeAddressTable() (*TableDef, error) {
 		return nil, err
 	}
 
-	id := new(FieldDefUint64)
+	id := new(FieldDefInt64)
 	id.SetName(pk)
 	id.SetUnique(true)
 	err = addressTable.Add(id)
@@ -73,7 +73,7 @@ func makeCityTable() (*TableDef, error) {
 	if err != nil {
 		return nil, err
 	}
-	id := new(FieldDefUint64)
+	id := new(FieldDefInt64)
 	id.SetName(pk)
 	id.SetUnique(true)
 	err = cityTable.Add(id)
@@ -94,16 +94,16 @@ func makeCityTable() (*TableDef, error) {
 	return cityTable, err
 }
 
-const City1PK = uint64(42)
+const City1PK = int64(42)
 const City1Name = "New York"
-const City2PK = uint64(73)
+const City2PK = int64(73)
 const City2Name = "Montreal"
 
-const Address1PK = uint64(675)
+const Address1PK = int64(675)
 const Address1Street = "Main St."
-const Address2PK = uint64(88908)
+const Address2PK = int64(88908)
 
-func makeCityRecord1(t *TableDef, citypkvalue uint64) (*Record, error) {
+func makeCityRecord1(t *TableDef, citypkvalue int64) (*Record, error) {
 	rec, err := t.NewRecord()
 	if err != nil {
 		return nil, err
@@ -137,7 +137,7 @@ func makeCityRecord2(t *TableDef) (*Record, error) {
 	return rec, nil
 }
 
-func makeAddressRecord1(t *TableDef, addressPkValue uint64) (*Record, error) {
+func makeAddressRecord1(t *TableDef, addressPkValue int64) (*Record, error) {
 	rec, err := t.NewRecord()
 	if err != nil {
 		return nil, err

@@ -34,7 +34,7 @@ func simpleOneToMany() (*Persister, *TableDef, *TableDef, *OneToMany, error) {
 	return pers, address, city, rel, nil
 }
 
-func TestVerifySimpleOneToManyCreateWorks(t *testing.T) {
+func TestVerifySimpleOneToManyCreateTablesWorks(t *testing.T) {
 	pers, address, city, _, err := simpleOneToMany()
 
 	if err != nil {
@@ -47,7 +47,7 @@ func TestVerifySimpleOneToManyCreateWorks(t *testing.T) {
 	}
 }
 
-func TestVerifysShallowOneToManyInsert(t *testing.T) {
+func TestVerifysShallowOneToManyInsert_ExplicitPKs(t *testing.T) {
 	pers, address, city, _, err := simpleOneToMany()
 
 	if err != nil {
@@ -82,9 +82,9 @@ func TestVerifysShallowOneToManyInsert(t *testing.T) {
 
 }
 
-func TestVerifysDeepOneToManyInsert(t *testing.T) {
+func TestVerifysDeepOneToManyInsert_ExplicitPKs(t *testing.T) {
 	//func Foo(t *testing.T) {
-	pers, address, city, _, err := simpleOneToMany()
+	pers, address, city, one2m, err := simpleOneToMany()
 
 	if err != nil {
 		t.Fatal(err)
@@ -103,11 +103,15 @@ func TestVerifysDeepOneToManyInsert(t *testing.T) {
 	// Here we are deep saving, calling Save() not save();
 	//   Save() should recursively save City, then Address, populating address.cityfk with city.fk
 	addressRec1, err := makeAddressRecord1(address, Address1PK)
-	err = addressRec1.AddRelationRecord(nil, cityRec1)
-	if err == nil {
+	err = addressRec1.AddRelationRecord(one2m, cityRec1)
+	if err != nil {
 		t.Fatal(err)
 	}
 
+	err = pers.Save(addressRec1)
+	if err != nil {
+		t.Fatal(err)
+	}
 }
 
 func TestVerifySimpleOneToManyInsert_FailMissingCity(t *testing.T) {
@@ -167,20 +171,22 @@ func TestVerifyOneToManyComplexSaveJoinCache(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	log.Println("Saving address 1")
 	err = pers.Save(addressRec1)
 	if err != nil {
 		t.Fatal(err)
 	}
-	cityRec2, err := makeCityRecord1(city, City1PK)
-	if err != nil {
-		t.Fatal(err)
-	}
+	// cityRec2, err := makeCityRecord1(city, City1PK)
+	// if err != nil {
+	// 	t.Fatal(err)
+	// }
 	addressRec2, err := makeAddressRecord1(address, Address2PK)
-	err = addressRec2.AddRelationRecord(one2m, cityRec2)
+	err = addressRec2.AddRelationRecord(one2m, cityRec1)
 	if err != nil {
 		t.Fatal(err)
 	}
 
+	log.Println("Saving address 2")
 	err = pers.Save(addressRec2)
 	if err != nil {
 		t.Fatal(err)

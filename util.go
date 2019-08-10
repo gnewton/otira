@@ -36,7 +36,7 @@ func findRelationPK(record *Record, rel *OneToMany) (string, error) {
 
 func supportedType(t interface{}) bool {
 	switch t.(type) {
-	case string, uint64, uint32, int, int8, int16, int32, int64, float32, float64, []byte, bool:
+	case string, int64, uint32, int, int8, int16, int32, uint64, float32, float64, []byte, bool:
 		return true
 	}
 	return false
@@ -66,15 +66,15 @@ func toString(t interface{}) string {
 		return strconv.FormatInt(int64(v), 10)
 
 	case uint:
-		return strconv.FormatUint(uint64(v), 10)
+		return strconv.FormatInt(int64(v), 10)
 	case uint64:
-		return strconv.FormatUint(v, 10)
+		return strconv.FormatInt(int64(v), 10)
 	case uint32:
-		return strconv.FormatUint(uint64(v), 10)
+		return strconv.FormatInt(int64(v), 10)
 	case uint16:
-		return strconv.FormatUint(uint64(v), 10)
+		return strconv.FormatInt(int64(v), 10)
 	case uint8:
-		return strconv.FormatUint(uint64(v), 10)
+		return strconv.FormatInt(int64(v), 10)
 
 	case float32:
 		return strconv.FormatFloat(float64(v), 'f', -1, 32)
@@ -86,4 +86,8 @@ func toString(t interface{}) string {
 
 	}
 	return STRING_ERROR
+}
+
+func unsetPrimaryKey(rec *Record) bool {
+	return !rec.valueIsSet[0]
 }

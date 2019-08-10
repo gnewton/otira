@@ -190,7 +190,7 @@ func TestManyToManyInsertManyRecordsWithTwoRelationRecords(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	personRecord1, err := makePersonRecord(person, uint64(2), "Bill Smith")
+	personRecord1, err := makePersonRecord(person, int64(2), "Bill Smith")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -198,7 +198,7 @@ func TestManyToManyInsertManyRecordsWithTwoRelationRecords(t *testing.T) {
 	for i := 11; i < 1000; i++ {
 
 		q := toString(i)
-		teamRecord, err := makeTeamRecord(team, uint64(i), "Leafs_"+q)
+		teamRecord, err := makeTeamRecord(team, int64(i), "Leafs_"+q)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -208,7 +208,7 @@ func TestManyToManyInsertManyRecordsWithTwoRelationRecords(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		personRecord2, err := makePersonRecord(person, uint64(i*30000), "Bobby Orr"+q)
+		personRecord2, err := makePersonRecord(person, int64(i*30000), "Bobby Orr"+q)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -295,7 +295,7 @@ func makePersonTable() (*TableDef, error) {
 		return nil, err
 	}
 	personTable.UseRecordPrimaryKeys = true
-	id := new(FieldDefUint64)
+	id := new(FieldDefInt64)
 	id.SetName(pk)
 	id.SetUnique(true)
 	err = personTable.Add(id)
@@ -318,7 +318,7 @@ func makePersonTable() (*TableDef, error) {
 	return personTable, nil
 }
 
-func makePersonRecord(t *TableDef, id uint64, name string) (*Record, error) {
+func makePersonRecord(t *TableDef, id int64, name string) (*Record, error) {
 	rec, err := t.NewRecord()
 	if err != nil {
 		return nil, err
@@ -341,7 +341,7 @@ func makeTeamTable() (*TableDef, error) {
 	if err != nil {
 		return nil, err
 	}
-	id := new(FieldDefUint64)
+	id := new(FieldDefInt64)
 	id.SetName(pk)
 	id.SetUnique(true)
 	err = teamTable.Add(id)
@@ -362,7 +362,7 @@ func makeTeamTable() (*TableDef, error) {
 	return teamTable, nil
 }
 
-func makeTeamRecord(t *TableDef, id uint64, name string) (*Record, error) {
+func makeTeamRecord(t *TableDef, id int64, name string) (*Record, error) {
 	rec, err := t.NewRecord()
 	if err != nil {
 		return nil, err

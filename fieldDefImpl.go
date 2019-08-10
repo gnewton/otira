@@ -102,12 +102,12 @@ type FieldDefInt struct {
 	FieldDefImpl
 }
 
-type FieldDefUint64 struct {
+type FieldDefInt64 struct {
 	FieldDefImpl
 }
 
-func (fm *FieldDefUint64) IsSameType(v interface{}) bool {
-	_, ok := v.(uint64)
+func (fm *FieldDefInt64) IsSameType(v interface{}) bool {
+	_, ok := v.(int64)
 	if ok {
 		return true
 	}
@@ -161,7 +161,7 @@ func (fm *FieldDefInt) IsSameType(v interface{}) bool {
 		return true
 	}
 
-	_, ok = v.(uint64)
+	_, ok = v.(int64)
 	if ok {
 		return true
 	}

@@ -15,8 +15,6 @@ func TestSimpleStorer(t *testing.T) {
 	}
 	defer db.Close()
 
-	st := new(SimpleStorer)
-
 	dbopts := DBOptions{
 		Dialect:      new(DialectSqlite3),
 		TxSize:       10000,
@@ -32,6 +30,8 @@ func TestSimpleStorer(t *testing.T) {
 	if table == nil {
 		t.Fatal(errors.New("Table is nil!!!"))
 	}
+
+	st := new(SimpleStorer)
 	err = st.Initialize(db, &dbopts, []*TableDef{table}...)
 	if err != nil {
 		t.Fatal(err)
@@ -49,7 +49,7 @@ func TestSimpleStorer(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		err = rec.SetByName(pk, uint64(i))
+		err = rec.SetByName(pk, int64(i))
 		if err != nil {
 			t.Fatal(err)
 		}

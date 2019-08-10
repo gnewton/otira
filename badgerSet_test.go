@@ -30,10 +30,10 @@ func TestAddHC(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	var v uint64 = 100
+	var v int64 = 100
 	hc.Put(v)
 
-	v = uint64(199)
+	v = int64(199)
 	hc.Put(v)
 
 	if ok, err := hc.Contains(v); !ok {

@@ -12,7 +12,7 @@ func newDefaultTestTable(singleDiscrimField bool) (*TableDef, error) {
 		return nil, err
 	}
 
-	f0 := new(FieldDefUint64)
+	f0 := new(FieldDefInt64)
 	f0.SetName(pk)
 	f0.SetUnique(true)
 	err = table.Add(f0)
@@ -69,7 +69,7 @@ func newDefaultTestTable(singleDiscrimField bool) (*TableDef, error) {
 	return table, nil
 }
 
-var DefaultPID uint64 = 999999
+var DefaultPID int64 = 999999
 
 func populateDefaultTableRecord(rec *Record) error {
 	err := rec.SetByName(tAddress, "street test")
@@ -106,7 +106,7 @@ func newOneToManyTestTable() (*TableDef, *TableDef, Relation, error) {
 	}
 
 	var pk FieldDef
-	pk = new(FieldDefUint64)
+	pk = new(FieldDefInt64)
 	pk.SetName("id")
 	pk.SetUnique(true)
 	err = address.Add(pk)

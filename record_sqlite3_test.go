@@ -140,11 +140,8 @@ func TestWriteRecordsFromTableDef(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = record.Set(0, uint64(42))
-	v, err := record.tableDef.Next()
-	if err != nil {
-		t.Fatal(err)
-	}
+	err = record.Set(0, int64(42))
+	v := record.tableDef.Next()
 	err = record.Set(0, v)
 	if err != nil {
 		t.Fatal(err)
@@ -184,7 +181,7 @@ func TestWriteRecordsFromTableDef(t *testing.T) {
 	}
 	for i := 100; i < 201; i++ {
 		record.Reset()
-		record.Set(0, uint64(i))
+		record.Set(0, int64(i))
 		err = pers.save(record)
 		if err != nil {
 			t.Log(i)
@@ -204,7 +201,7 @@ func TestRecordFromTableDefTODO(t *testing.T) {
 	}
 	record, err := table.NewRecord()
 
-	err = record.Set(0, uint64(23))
+	err = record.Set(0, int64(23))
 	if err != nil {
 		t.Fatal(err)
 	}

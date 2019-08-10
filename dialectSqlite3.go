@@ -120,7 +120,7 @@ func (d *DialectSqlite3) FieldType(fm FieldDef) (string, error) {
 		}
 		s += "(" + strconv.Itoa(v.Length()) + ")"
 		return s, nil
-	case *FieldDefInt, *FieldDefUint64:
+	case *FieldDefInt, *FieldDefInt64:
 		return "UNSIGNED BIG INT", nil
 	case *FieldDefFloat:
 		return "REAL", nil
@@ -140,7 +140,7 @@ func (d *DialectSqlite3) Pragmas() []string {
 	return sqlite3DefaultPragmas
 }
 
-func (d *DialectSqlite3) ExistsString(table, field string, id uint64) (string, error) {
+func (d *DialectSqlite3) ExistsString(table, field string, id int64) (string, error) {
 	if table == "" {
 		return "", errors.New("table name is empty")
 	}

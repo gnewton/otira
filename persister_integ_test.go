@@ -47,8 +47,8 @@ func TestPersistFewRecords(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	var i uint64
-	base := uint64(100000)
+	var i int64
+	base := int64(100000)
 	for i = 0; i < 100; i++ {
 		//t.Log(i)
 		rec, err := table.NewRecord()
@@ -100,7 +100,7 @@ func TestSaveThenUpdateRecord(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	base := uint64(100000)
+	base := int64(100000)
 
 	rec, err := table.NewRecord()
 	if err != nil {

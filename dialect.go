@@ -11,7 +11,7 @@ type Dialect interface {
 	CreateTableString(t *TableDef) (string, error)
 	DropTableIfExistsString(tableName string) (string, error)
 	ExistsDeepString(*Record) (string, error)
-	ExistsString(table, field string, id uint64) (string, error)
+	ExistsString(table, field string, id int64) (string, error)
 	FieldType(FieldDef) (string, error)
 	ForeignKeys(t *TableDef) (string, error)
 

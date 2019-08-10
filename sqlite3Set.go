@@ -46,7 +46,7 @@ func NewSqlite3Set(dir string) (Set, error) {
 	if err != nil {
 		return nil, err
 	}
-	id := new(FieldDefUint64)
+	id := new(FieldDefInt64)
 	id.SetName("id")
 	id.SetUnique(true)
 	err = set.table.Add(id)
@@ -72,7 +72,7 @@ func (set *sqlite3Set) Close() error {
 	return nil
 }
 
-func (set *sqlite3Set) Contains(key uint64) (bool, error) {
+func (set *sqlite3Set) Contains(key int64) (bool, error) {
 	s := "select count(id) from set where id=?"
 	stmt, err := set.pers.tx.Prepare(s)
 	defer stmt.Close()
@@ -80,7 +80,7 @@ func (set *sqlite3Set) Contains(key uint64) (bool, error) {
 		return false, err
 	}
 
-	var count uint64
+	var count int64
 	err = stmt.QueryRow(key).Scan(&count)
 	switch {
 	case err == sql.ErrNoRows:
@@ -92,7 +92,7 @@ func (set *sqlite3Set) Contains(key uint64) (bool, error) {
 	}
 }
 
-func (set *sqlite3Set) Put(key uint64) error {
+func (set *sqlite3Set) Put(key int64) error {
 	set.counter++
 	rec, err := set.table.NewRecord()
 	rec.values[0] = key

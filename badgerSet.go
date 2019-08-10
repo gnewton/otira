@@ -64,8 +64,8 @@ func (hc *badgerSet) Close() error {
 	return nil
 }
 
-func (hc *badgerSet) Contains(key uint64) (bool, error) {
-	bk := uint64ToByteArray(key)
+func (hc *badgerSet) Contains(key int64) (bool, error) {
+	bk := int64ToByteArray(key)
 
 	_, err := hc.txn.Get(bk)
 	if err == badger.ErrKeyNotFound {
@@ -78,9 +78,9 @@ func (hc *badgerSet) Contains(key uint64) (bool, error) {
 
 }
 
-func (hc *badgerSet) Put(key uint64) error {
+func (hc *badgerSet) Put(key int64) error {
 	hc.counter++
-	bk := uint64ToByteArray(key)
+	bk := int64ToByteArray(key)
 
 	// Use the transaction...
 	err := hc.txn.Set(bk, []byte(""))

@@ -31,7 +31,7 @@ func TestAddFieldToTable(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	f := new(FieldDefUint64)
+	f := new(FieldDefInt64)
 	f.SetName(f_firstname)
 	t.Log(f.String())
 	err = table.Add(f)
@@ -46,7 +46,7 @@ func TestAddComplexIndexToTable(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	f := new(FieldDefUint64)
+	f := new(FieldDefInt64)
 	f.SetName("people")
 
 	t.Log(f.String())
@@ -65,7 +65,7 @@ func TestCreatePreparedStatementInsert(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	pk := new(FieldDefUint64)
+	pk := new(FieldDefInt64)
 	pk.SetName("id")
 
 	t.Log(pk.String())
@@ -103,7 +103,7 @@ func TestAddTwoFieldsWithSameName(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	f := new(FieldDefUint64)
+	f := new(FieldDefInt64)
 	f.SetName(f_firstname)
 	t.Log(f.String())
 	err = table.Add(f)
@@ -111,14 +111,14 @@ func TestAddTwoFieldsWithSameName(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	f2 := new(FieldDefUint64)
+	f2 := new(FieldDefInt64)
 	f2.SetName("fred")
 	err = table.Add(f2)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	f3 := new(FieldDefUint64)
+	f3 := new(FieldDefInt64)
 	f3.SetName("fred")
 	err = table.Add(f3)
 	if err == nil {
